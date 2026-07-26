@@ -3,11 +3,11 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
-const authRoutes = require('./routes/auth.routes');
-const plansRoutes = require('./routes/plans.routes');
-const ordersRoutes = require('./routes/orders.routes');
-const ticketsRoutes = require('./routes/tickets.routes');
-const adminRoutes = require('./routes/admin.routes');
+const authRoutes = require('./auth.routes');
+const plansRoutes = require('./plans.routes');
+const ordersRoutes = require('./orders.routes');
+const ticketsRoutes = require('./tickets.routes');
+const adminRoutes = require('./admin.routes');
 
 const app = express();
 
