@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('./db');
-const { hashPassword, comparePassword, setUserCookie, clearUserCookie, requireAuth } = require('../auth');
+const { hashPassword, comparePassword, setUserCookie, clearUserCookie, requireAuth } = require('./auth');
 
 const router = express.Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
