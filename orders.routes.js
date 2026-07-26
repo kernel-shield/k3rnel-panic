@@ -17,10 +17,19 @@ router.post('/', requireAuth, async (req, res) => {
   }
 
   const client = await db.pool.connect();
+  let released = false;
+
+  const safeRelease = () => {
+    if (!released) {
+      released = true;
+      client.release();
+    }
+  };
+
   try {
     const planRes = await client.query('SELECT * FROM plans WHERE id = $1', [planId]);
     if (planRes.rows.length === 0) {
-      client.release();
+      safeRelease();
       return res.status(404).json({ error: 'Ese plan ya no está disponible.' });
     }
     const plan = planRes.rows[0];
@@ -42,13 +51,17 @@ router.post('/', requireAuth, async (req, res) => {
     );
     await client.query('COMMIT');
 
+    safeRelease();
     res.status(201).json({ ok: true, serviceId: svcId, invoiceId: invId });
   } catch (e) {
-    await client.query('ROLLBACK');
+    try {
+      await client.query('ROLLBACK');
+    } catch (rbErr) {
+      // Ignorar error de rollback si la conexión ya se cerró
+    }
     console.error(e);
+    safeRelease();
     res.status(500).json({ error: 'Error al crear la orden.' });
-  } finally {
-    client.release();
   }
 });
 
