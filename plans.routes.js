@@ -11,12 +11,18 @@ function serializePlan(p) {
   };
 }
 
-router.get('/', (req, res) => {
-  const rows = db.prepare('SELECT * FROM plans ORDER BY tier, sort_order').all();
-  res.json({
-    essential: rows.filter(p => p.tier === 'essential').map(serializePlan),
-    premium: rows.filter(p => p.tier === 'premium').map(serializePlan),
-  });
+router.get('/', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM plans ORDER BY tier, sort_order');
+    const rows = result.rows;
+    res.json({
+      essential: rows.filter(p => p.tier === 'essential').map(serializePlan),
+      premium: rows.filter(p => p.tier === 'premium').map(serializePlan),
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al obtener los planes.' });
+  }
 });
 
 module.exports = router;
