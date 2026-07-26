@@ -13,9 +13,9 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN === '*' ? true : process.env.CORS_ORIGIN,
-  credentials: true, // necesario para que las cookies de sesión viajen entre el sitio y esta API
+app.use(cors());
+    origin: true,
+    credentials: true
 }));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'kernelshield-server' }));
