@@ -86,56 +86,37 @@
 <div class="toast" id="toast"></div>
 <script src="core.js"></script>
 <script>
-redirectIfAuthed();
+(async()=>{ await redirectIfAuthed(); })();
 
-document.getElementById('regForm').addEventListener('submit', function(e){
+document.getElementById('regForm').addEventListener('submit', async function(e){
   e.preventDefault();
   const msg = document.getElementById('regMsg');
   msg.className = 'form-msg';
-  const first = document.getElementById('regFirst').value.trim();
-  const last = document.getElementById('regLast').value.trim();
-  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const first   = document.getElementById('regFirst').value.trim();
+  const last    = document.getElementById('regLast').value.trim();
+  const email   = document.getElementById('regEmail').value.trim().toLowerCase();
   const country = document.getElementById('regCountry').value;
-  const pass = document.getElementById('regPass').value;
-  const pass2 = document.getElementById('regPass2').value;
-
+  const pass    = document.getElementById('regPass').value;
+  const pass2   = document.getElementById('regPass2').value;
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if(!first || !last){
-    msg.textContent = 'Ingresa tu nombre y apellido.';
+  if(!first || !last){ msg.textContent='Ingresa tu nombre y apellido.'; msg.className='form-msg err'; return; }
+  if(!EMAIL_RE.test(email)){ msg.textContent='Ingresa un correo electrónico válido.'; msg.className='form-msg err'; return; }
+  if(pass.length < 6){ msg.textContent='La contraseña debe tener al menos 6 caracteres.'; msg.className='form-msg err'; return; }
+  if(pass !== pass2){ msg.textContent='Las contraseñas no coinciden.'; msg.className='form-msg err'; return; }
+
+  showLoading('Creando cuenta...');
+  const { ok, data } = await apiFetch('/api/auth/register', {
+    method: 'POST',
+    body: { first, last, email, country, password: pass }
+  });
+  hideLoading();
+  if(!ok){
+    msg.textContent = data.error || 'Error al crear la cuenta. Intenta de nuevo.';
     msg.className = 'form-msg err'; return;
   }
-  if(!EMAIL_RE.test(email)){
-    msg.textContent = 'Ingresa un correo electrónico válido.';
-    msg.className = 'form-msg err'; return;
-  }
-  if(pass.length < 6){
-    msg.textContent = 'La contraseña debe tener al menos 6 caracteres.';
-    msg.className = 'form-msg err'; return;
-  }
-  if(pass !== pass2){
-    msg.textContent = 'Las contraseñas no coinciden.';
-    msg.className = 'form-msg err'; return;
-  }
-  const db = getUsers();
-  if(db[email]){
-    msg.textContent = 'Ya existe una cuenta registrada con ese correo.';
-    msg.className = 'form-msg err'; return;
-  }
-  db[email] = {
-    first, last, email, country,
-    passHash: hashPass(pass),
-    createdAt: new Date().toISOString(),
-    services: [],
-    invoices: [],
-    tickets: []
-  };
-  saveUsers(db);
-  msg.textContent = '¡Cuenta creada correctamente! Iniciando sesión...';
+  msg.textContent = '¡Cuenta creada! Iniciando sesión...';
   msg.className = 'form-msg ok';
-  setTimeout(()=>{
-    setSession(email);
-    location.href = 'panel.html';
-  }, 700);
+  setTimeout(()=>{ location.href = 'panel.html'; }, 700);
 });
 </script>
 </body>

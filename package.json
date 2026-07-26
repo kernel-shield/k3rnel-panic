@@ -1,0 +1,21 @@
+{
+  "name": "kernelshield-server",
+  "version": "1.0.0",
+  "description": "Backend real (API + base de datos) para Kernel Shield — reemplaza el localStorage del sitio.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "hash-admin-pass": "node src/tools/hash-password.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

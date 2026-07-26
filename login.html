@@ -57,27 +57,25 @@
 <div class="toast" id="toast"></div>
 <script src="core.js"></script>
 <script>
-redirectIfAuthed();
+(async()=>{ await redirectIfAuthed(); })();
 
-document.getElementById('loginForm').addEventListener('submit', function(e){
+document.getElementById('loginForm').addEventListener('submit', async function(e){
   e.preventDefault();
-  const msg = document.getElementById('loginMsg');
+  const msg   = document.getElementById('loginMsg');
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const pass = document.getElementById('loginPass').value;
+  const pass  = document.getElementById('loginPass').value;
   if(!email || !pass){
     msg.textContent = 'Ingresa tu correo y contraseña.';
-    msg.className = 'form-msg err';
-    return;
-  }
-  const db = getUsers();
-  const user = db[email];
-  if(!user || user.passHash !== hashPass(pass)){
-    msg.textContent = 'Correo o contraseña incorrectos.';
-    msg.className = 'form-msg err';
-    return;
+    msg.className = 'form-msg err'; return;
   }
   msg.className = 'form-msg';
-  setSession(email);
+  showLoading('Iniciando sesión...');
+  const { ok, data } = await apiFetch('/api/auth/login', { method:'POST', body:{ email, password: pass } });
+  hideLoading();
+  if(!ok){
+    msg.textContent = data.error || 'Correo o contraseña incorrectos.';
+    msg.className = 'form-msg err'; return;
+  }
   const params = new URLSearchParams(location.search);
   const next = params.get('next');
   location.href = next === 'vps' ? 'vps.html' : 'panel.html';
