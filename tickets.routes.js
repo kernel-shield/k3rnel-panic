@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const db = require('./db');
-const { requireAuth } = require('../auth');
+const { requireAuth } = require('./auth');
 
 const router = express.Router();
 
