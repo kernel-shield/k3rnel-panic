@@ -10,44 +10,56 @@ function genId(prefix) {
   return `${prefix}-${crypto.randomInt(100000, 999999)}`;
 }
 
-/* Crear una orden nueva: valida el plan y el precio EN EL SERVIDOR
-   (nunca confiar en un precio que venga del navegador) y deja el
-   servicio + factura en estado "pending" hasta que el admin lo
-   verifique manualmente. */
-router.post('/', requireAuth, (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   const { planId, method } = req.body || {};
   if (!VALID_METHODS.includes(method)) {
     return res.status(400).json({ error: 'Método de pago no válido.' });
   }
-  const plan = db.prepare('SELECT * FROM plans WHERE id = ?').get(planId);
-  if (!plan) return res.status(404).json({ error: 'Ese plan ya no está disponible.' });
 
-  const svcId = genId('SVC');
-  const invId = genId('INV');
-  const name = `VPS ${plan.name}`;
-  const spec = `${plan.cores} vCores · ${plan.ram} RAM · ${plan.disk}`;
+  const client = await db.pool.connect();
+  try {
+    const planRes = await client.query('SELECT * FROM plans WHERE id = $1', [planId]);
+    if (planRes.rows.length === 0) {
+      client.release();
+      return res.status(404).json({ error: 'Ese plan ya no está disponible.' });
+    }
+    const plan = planRes.rows[0];
 
-  const tx = db.transaction(() => {
-    db.prepare(`
-      INSERT INTO services (id, user_id, plan_id, name, spec, price, method, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
-    `).run(svcId, req.userId, plan.id, name, spec, plan.price, method);
+    const svcId = genId('SVC');
+    const invId = genId('INV');
+    const name = `VPS ${plan.name}`;
+    const spec = `${plan.cores} vCores · ${plan.ram} RAM · ${plan.disk}`;
 
-    db.prepare(`
-      INSERT INTO invoices (id, user_id, svc_id, desc, amount, method, status)
-      VALUES (?, ?, ?, ?, ?, ?, 'pending')
-    `).run(invId, req.userId, svcId, name, plan.price, method);
-  });
-  tx();
+    await client.query('BEGIN');
+    await client.query(
+      `INSERT INTO services (id, user_id, plan_id, name, spec, price, method, status) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')`,
+      [svcId, req.userId, plan.id, name, spec, plan.price, method]
+    );
+    await client.query(
+      `INSERT INTO invoices (id, user_id, svc_id, "desc", amount, method, status) VALUES ($1, $2, $3, $4, $5, $6, 'pending')`,
+      [invId, req.userId, svcId, name, plan.price, method]
+    );
+    await client.query('COMMIT');
 
-  res.status(201).json({ ok: true, serviceId: svcId, invoiceId: invId });
+    res.status(201).json({ ok: true, serviceId: svcId, invoiceId: invId });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error(e);
+    res.status(500).json({ error: 'Error al crear la orden.' });
+  } finally {
+    client.release();
+  }
 });
 
-/* Servicios + facturas del usuario logueado (para su dashboard) */
-router.get('/mine', requireAuth, (req, res) => {
-  const services = db.prepare('SELECT * FROM services WHERE user_id = ? ORDER BY date DESC').all(req.userId);
-  const invoices = db.prepare('SELECT * FROM invoices WHERE user_id = ? ORDER BY date DESC').all(req.userId);
-  res.json({ services, invoices });
+router.get('/mine', requireAuth, async (req, res) => {
+  try {
+    const servicesRes = await db.query('SELECT * FROM services WHERE user_id = $1 ORDER BY date DESC', [req.userId]);
+    const invoicesRes = await db.query('SELECT * FROM invoices WHERE user_id = $1 ORDER BY date DESC', [req.userId]);
+    res.json({ services: servicesRes.rows, invoices: invoicesRes.rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al obtener tus servicios.' });
+  }
 });
 
 module.exports = router;
