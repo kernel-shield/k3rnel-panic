@@ -22,14 +22,14 @@ function esc(str){
 const CHECK_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>`;
 
 const ICON_SVG = {
-  bolt:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>`,
-  crown:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 8 4 3 6-7 6 7 4-3-2 12H4L2 8Z"/></svg>`,
-  cpu:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>`,
-  gauge:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14 15 10"/><circle cx="12" cy="14" r="1"/><path d="M4.9 19a9 9 0 1 1 14.2 0"/></svg>`,
-  disk:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>`,
+  bolt:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>`,
+  crown:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 8 4 3 6-7 6 7 4-3-2 12H4L2 8Z"/></svg>`,
+  cpu:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>`,
+  gauge:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14 15 10"/><circle cx="12" cy="14" r="1"/><path d="M4.9 19a9 9 0 1 1 14.2 0"/></svg>`,
+  disk:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>`,
   shieldCheck:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>`,
-  copy:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
-  ext:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>`,
+  copy:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+  ext:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>`,
 };
 
 /* ── TIER META (planes) ─────────────────────────────────── */
@@ -79,7 +79,7 @@ function planCardHTML(p, ctx, tier){
 ============================================================ */
 async function apiFetch(path, opts={}){
   const res = await fetch(API + path, {
-    credentials: 'include',      // envía/recibe cookies de sesión
+    credentials: 'include',      // envía/recibe cookies de sesión entre dominios cruzados
     headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) },
     ...opts,
     body: opts.body ? JSON.stringify(opts.body) : undefined,
@@ -91,8 +91,6 @@ async function apiFetch(path, opts={}){
 /* ============================================================
    AUTH — lee /api/auth/me (cookie de sesión real)
 ============================================================ */
-
-/* Cache en memoria para no hacer /me en cada render */
 let _userCache = null;
 
 async function currentUser(){
@@ -104,25 +102,22 @@ async function currentUser(){
 
 function invalidateUserCache(){ _userCache = null; }
 
-/* Redirige a login si no hay sesión activa */
 async function requireAuth(){
   const user = await currentUser();
   if(!user){ location.href = 'login.html'; return false; }
   return true;
 }
 
-/* Si ya hay sesión y visita login/registro, manda al panel */
 async function redirectIfAuthed(){
   const user = await currentUser();
   if(user){ location.href = 'panel.html'; return true; }
   return false;
 }
 
-/* migrateLegacyData: ya no hace nada (el backend tiene sus propios datos) */
 function migrateLegacyData(){ return Promise.resolve(); }
 
 /* ============================================================
-   PLANES — cargados desde la API (admin los puede editar)
+   PLANES — cargados desde la API
 ============================================================ */
 let _plansCache = null;
 
@@ -143,7 +138,7 @@ async function getPlansDB(){
 function invalidatePlansCache(){ _plansCache = null; }
 
 /* ============================================================
-   MÉTODOS DE PAGO (sin cambios)
+   MÉTODOS DE PAGO
 ============================================================ */
 const PAYPAL_BUSINESS_EMAIL = 'saylinv2782@gmail.com';
 const NEQUI_NUMBER          = '3128482212';
@@ -232,7 +227,7 @@ function ticketPillHTML(status){
 }
 
 /* ============================================================
-   NAVBAR PÚBLICA — async porque currentUser() es async
+   NAVBAR PÚBLICA
 ============================================================ */
 async function initPublicNav(activeKey){
   document.querySelectorAll('#publicNav a[data-nav]').forEach(a=>{
