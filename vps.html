@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planes VPS | Kernel Shield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="noise-veil"></div>
+
+<header class="topnav">
+  <a href="index.html" class="brand">
+    <img src="assets/logo.png" alt="Kernel Shield">
+    <div class="name">Kernel<span>Shield</span></div>
+  </a>
+  <nav class="mainlinks" id="publicNav">
+    <a href="index.html" data-nav="inicio">Inicio</a>
+    <a href="vps.html" data-nav="vps">VPS</a>
+    <a href="login.html" data-nav="login">Iniciar Sesión</a>
+  </nav>
+  <div class="nav-right" id="navRight">
+    <div class="badge-status"><span class="dot-live"></span> Todos los sistemas operativos</div>
+    <a href="login.html" class="btn btn-ghost btn-sm">Client Area</a>
+    <a href="registro.html" class="btn btn-primary btn-sm">Crear Cuenta</a>
+  </div>
+</header>
+
+<main>
+  <section class="view active">
+    <div style="max-width:1180px;margin:0 auto;padding:60px 24px 90px;">
+      <div class="page-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
+        <h2>Servidores Privados Virtuales</h2>
+        <p>Elige el plan VPS ideal para tu servidor de juego o proyecto. Todos incluyen protección DDoS y panel simple.</p>
+      </div>
+      <div class="plans-toolbar" style="justify-content:center;" data-toolbar="public">
+        <div class="tab-chip active" data-tier="essential"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg> Essential</div>
+        <div class="tab-chip" data-tier="premium"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 8 4 3 6-7 6 7 4-3-2 12H4L2 8Z"/></svg> Premium</div>
+      </div>
+      <p class="plan-tier-note" id="publicTierNote" style="justify-content:center;"></p>
+      <div class="plans-grid" id="publicPlansGrid"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div>© 2026 Kernel Shield · kernelshield.xyz</div>
+  <div>VPS de alto rendimiento para LATAM · Pagos verificados manualmente por el equipo</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script src="core.js"></script>
+<script>
+initPublicNav('vps');
+
+let publicTier = 'essential';
+
+function renderPublicPlans(){
+  const plansDB = getPlansDB();
+  const list = publicTier === 'premium' ? plansDB.premium : plansDB.essential;
+  document.getElementById('publicPlansGrid').innerHTML = list.map(p=>planCardHTML(p,'public',publicTier)).join('');
+  document.getElementById('publicTierNote').innerHTML = TIER_META[publicTier].note;
+}
+renderPublicPlans();
+
+document.querySelector('[data-toolbar="public"]').addEventListener('click', (e)=>{
+  const chip = e.target.closest('.tab-chip[data-tier]');
+  if(!chip) return;
+  publicTier = chip.dataset.tier;
+  document.querySelectorAll('[data-toolbar="public"] .tab-chip').forEach(c=>c.classList.toggle('active', c===chip));
+  renderPublicPlans();
+});
+
+/* Ordenar desde la página pública: si no hay sesión, va a login.
+   Si ya hay sesión, lo mandamos directo al panel con ese plan
+   preseleccionado para completar el checkout ahí (donde vive el
+   modal de pago real). */
+function orderPlan(planId, ctx, tier){
+  const user = currentUser();
+  if(!user){
+    showToast('Inicia sesión para ordenar un plan.');
+    setTimeout(()=>{ location.href = 'login.html?next=vps'; }, 500);
+    return;
+  }
+  location.href = 'panel.html?tab=vps&order=' + encodeURIComponent(planId) + '&tier=' + encodeURIComponent(tier);
+}
+</script>
+</body>
+</html>

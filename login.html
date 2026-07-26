@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar Sesión | Kernel Shield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="noise-veil"></div>
+
+<header class="topnav">
+  <a href="index.html" class="brand">
+    <img src="assets/logo.png" alt="Kernel Shield">
+    <div class="name">Kernel<span>Shield</span></div>
+  </a>
+  <nav class="mainlinks" id="publicNav">
+    <a href="index.html" data-nav="inicio">Inicio</a>
+    <a href="vps.html" data-nav="vps">VPS</a>
+    <a href="login.html" data-nav="login">Iniciar Sesión</a>
+  </nav>
+  <div class="nav-right" id="navRight">
+    <div class="badge-status"><span class="dot-live"></span> Todos los sistemas operativos</div>
+    <a href="registro.html" class="btn btn-primary btn-sm">Crear Cuenta</a>
+  </div>
+</header>
+
+<main>
+  <section class="view active">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-head">
+          <img src="assets/logo.png" alt="Kernel Shield">
+          <h1>Ingresa a tu cuenta</h1>
+          <p>Accede al panel de cliente de Kernel Shield</p>
+        </div>
+        <div class="form-msg" id="loginMsg"></div>
+        <form id="loginForm">
+          <div class="field">
+            <label>Correo electrónico</label>
+            <input type="email" id="loginEmail" placeholder="tucorreo@ejemplo.com" required>
+          </div>
+          <div class="field">
+            <label>Contraseña</label>
+            <input type="password" id="loginPass" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
+        </form>
+        <div class="auth-alt">¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="core.js"></script>
+<script>
+redirectIfAuthed();
+
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const msg = document.getElementById('loginMsg');
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  if(!email || !pass){
+    msg.textContent = 'Ingresa tu correo y contraseña.';
+    msg.className = 'form-msg err';
+    return;
+  }
+  const db = getUsers();
+  const user = db[email];
+  if(!user || user.passHash !== hashPass(pass)){
+    msg.textContent = 'Correo o contraseña incorrectos.';
+    msg.className = 'form-msg err';
+    return;
+  }
+  msg.className = 'form-msg';
+  setSession(email);
+  const params = new URLSearchParams(location.search);
+  const next = params.get('next');
+  location.href = next === 'vps' ? 'vps.html' : 'panel.html';
+});
+</script>
+</body>
+</html>

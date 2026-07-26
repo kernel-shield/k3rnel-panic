@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | Kernel Shield</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="noise-veil"></div>
+
+<header class="topnav">
+  <a href="index.html" class="brand">
+    <img src="assets/logo.png" alt="Kernel Shield">
+    <div class="name">Kernel<span>Shield</span></div>
+  </a>
+  <div class="nav-right">
+    <div class="badge-status"><span class="dot-live"></span> Panel administrativo</div>
+  </div>
+</header>
+
+<main>
+  <!-- GATE: se muestra hasta validar la contraseña de admin -->
+  <div id="adminGate">
+    <div class="auth-wrap" style="min-height:calc(100vh - 63px);">
+      <div class="auth-card">
+        <div class="auth-head">
+          <span class="ic-svg" style="width:40px;height:40px;color:var(--blue-1);margin-bottom:10px;display:inline-flex;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5l-8-3Z"/></svg></span>
+          <h1>Acceso Administrativo</h1>
+          <p>Panel restringido — solo personal autorizado de Kernel Shield</p>
+        </div>
+        <div class="form-msg" id="adminGateMsg"></div>
+        <form id="adminGateForm">
+          <div class="field">
+            <label>Contraseña de administrador</label>
+            <input type="password" id="adminGatePass" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Entrar al panel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido del panel: solo visible tras autenticación -->
+  <div id="adminContent" style="display:none;">
+    <div style="max-width:1100px;margin:0 auto;padding:40px 24px 80px;">
+      <div class="page-head">
+        <div>
+          <h2><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5l-8-3Z"/></svg></span> Panel de Administración</h2>
+          <p>Verifica los pagos (PayPal, Nequi, Binance Pay) y activa o rechaza los servicios manualmente.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="adminLogoutBtn">Cerrar sesión admin</button>
+      </div>
+
+      <div class="panel-box">
+        <h3><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span> Datos para verificar cada método</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div class="pay-detail-row"><div><div class="label">PayPal</div><div class="value" style="font-size:12.5px;">saylinv2782@gmail.com</div></div></div>
+          <div class="pay-detail-row"><div><div class="label">Nequi</div><div class="value">312 848 2212</div></div></div>
+          <div class="pay-detail-row"><div><div class="label">Binance Pay UID</div><div class="value">1216562025</div></div></div>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(2,1fr);max-width:460px;">
+        <div class="stat-card" style="--accent:#ffb648;"><div class="label">Pendientes de pago</div><div class="value" id="adminPendingCount">0</div><div class="sub">Requieren verificación</div></div>
+        <div class="stat-card" style="--accent:#3aa0ff;"><div class="label">Órdenes totales</div><div class="value" id="adminTotalCount">0</div><div class="sub">Histórico</div></div>
+      </div>
+      <div class="panel-box"><div id="adminTableWrap"></div></div>
+
+      <div class="panel-box">
+        <h3 style="justify-content:space-between;display:flex;align-items:center;">
+          <span><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a2 2 0 0 0-2-2v-3a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3a2 2 0 0 1 0 4v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3a2 2 0 0 0 2-2Z"/></svg></span> Tickets de Soporte</span>
+          <span class="tab-chip" id="adminTicketOpenBadge" style="pointer-events:none;">0 abiertos</span>
+        </h3>
+        <div id="adminTicketsWrap"></div>
+      </div>
+
+      <div class="panel-box">
+        <h3 style="justify-content:space-between;display:flex;align-items:center;">
+          <span><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="6" rx="1.5"/><rect x="4" y="15" width="16" height="6" rx="1.5"/></svg></span> Gestión de Planes VPS</span>
+          <button class="btn btn-primary btn-sm" onclick="openPlanModal('create', adminPlanTier)">+ Nuevo plan</button>
+        </h3>
+        <div class="plans-toolbar" data-plantier>
+          <div class="tab-chip active" data-tier="essential">Essential</div>
+          <div class="tab-chip" data-tier="premium">Premium</div>
+        </div>
+        <div id="adminPlansWrap"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div>© 2026 Kernel Shield · kernelshield.xyz</div>
+  <div>Acceso restringido · Actividad registrada localmente en este navegador</div>
+</footer>
+
+<!-- PLAN CREATE/EDIT MODAL -->
+<div class="modal-veil" id="planModal">
+  <div class="modal-box" style="max-width:480px;">
+    <h3 id="planModalTitle"><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="6" rx="1.5"/><rect x="4" y="15" width="16" height="6" rx="1.5"/></svg></span> Nuevo plan VPS</h3>
+    <p class="desc">Los cambios se aplican de inmediato en la web para todos los clientes.</p>
+    <form id="planForm">
+      <input type="hidden" id="planId">
+      <input type="hidden" id="planTier">
+      <div class="field">
+        <label>Nombre del plan</label>
+        <input type="text" id="planName" placeholder="Ej: Pro | Essential" required>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Precio mensual (USD)</label>
+          <input type="number" id="planPrice" step="0.01" min="0" placeholder="7.45" required>
+        </div>
+        <div class="field">
+          <label>Etiqueta (opcional)</label>
+          <input type="text" id="planTag" placeholder="Popular">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>vCores</label>
+          <input type="number" id="planCores" min="1" placeholder="4" required>
+        </div>
+        <div class="field">
+          <label>Memoria RAM</label>
+          <input type="text" id="planRam" placeholder="8 GB" required>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Almacenamiento</label>
+          <input type="text" id="planDisk" placeholder="80GB SSD" required>
+        </div>
+        <div class="field">
+          <label>Puerto</label>
+          <input type="text" id="planPort" placeholder="800 Mbps" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>Ancho de banda</label>
+        <input type="text" id="planBw" placeholder="10TB" required>
+      </div>
+      <div class="field" style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="planBackup" style="width:auto;">
+        <label style="margin:0;">Incluye backups automáticos</label>
+      </div>
+      <div class="form-msg" id="planFormMsg"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost btn-block" onclick="closePlanModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Guardar plan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TICKET THREAD MODAL (ADMIN) -->
+<div class="modal-veil" id="adminTicketModal">
+  <div class="modal-box" style="max-width:520px;">
+    <h3><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a2 2 0 0 0-2-2v-3a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3a2 2 0 0 1 0 4v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3a2 2 0 0 0 2-2Z"/></svg></span> <span id="adminTicketSubject">Ticket</span></h3>
+    <div id="adminTicketMeta" class="desc"></div>
+    <div id="adminTicketThreadWrap" style="max-height:340px;overflow-y:auto;margin:14px 0;display:flex;flex-direction:column;gap:10px;"></div>
+    <div id="adminTicketReplyBox">
+      <div class="field">
+        <label>Responder como Soporte Kernel Shield</label>
+        <textarea id="adminTicketReplyMsg" rows="3" placeholder="Escribe tu respuesta..." style="width:100%;background:var(--bg-1);border:1px solid var(--border-soft);border-radius:9px;color:var(--text-0);padding:11px 13px;font-family:inherit;font-size:13.5px;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-bottom:8px;">
+      <button class="btn btn-ghost btn-block" onclick="closeAdminTicketModal()">Cerrar ventana</button>
+      <button class="btn btn-danger btn-block" id="adminCloseTicketBtn">Cerrar ticket</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-block" id="adminTicketReplyBtn">Enviar respuesta</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="core.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

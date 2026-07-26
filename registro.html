@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crear Cuenta | Kernel Shield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="noise-veil"></div>
+
+<header class="topnav">
+  <a href="index.html" class="brand">
+    <img src="assets/logo.png" alt="Kernel Shield">
+    <div class="name">Kernel<span>Shield</span></div>
+  </a>
+  <nav class="mainlinks" id="publicNav">
+    <a href="index.html" data-nav="inicio">Inicio</a>
+    <a href="vps.html" data-nav="vps">VPS</a>
+    <a href="login.html" data-nav="login">Iniciar Sesión</a>
+  </nav>
+  <div class="nav-right" id="navRight">
+    <div class="badge-status"><span class="dot-live"></span> Todos los sistemas operativos</div>
+    <a href="login.html" class="btn btn-ghost btn-sm">Client Area</a>
+  </div>
+</header>
+
+<main>
+  <section class="view active">
+    <div class="auth-wrap">
+      <div class="auth-card" style="max-width:460px;">
+        <div class="auth-head">
+          <img src="assets/logo.png" alt="Kernel Shield">
+          <h1>Crea tu cuenta</h1>
+          <p>Regístrate para ordenar servicios y gestionar tu hosting</p>
+        </div>
+        <div class="form-msg" id="regMsg"></div>
+        <form id="regForm">
+          <div class="field-row">
+            <div class="field">
+              <label>Nombre</label>
+              <input type="text" id="regFirst" placeholder="Juan" required>
+            </div>
+            <div class="field">
+              <label>Apellido</label>
+              <input type="text" id="regLast" placeholder="Pérez" required>
+            </div>
+          </div>
+          <div class="field">
+            <label>Correo electrónico</label>
+            <input type="email" id="regEmail" placeholder="tucorreo@ejemplo.com" required>
+          </div>
+          <div class="field">
+            <label>País</label>
+            <select id="regCountry">
+              <option>Colombia</option>
+              <option>México</option>
+              <option>Argentina</option>
+              <option>Perú</option>
+              <option>Chile</option>
+              <option>Venezuela</option>
+              <option>Ecuador</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Contraseña</label>
+              <input type="password" id="regPass" placeholder="Mínimo 6 caracteres" required>
+            </div>
+            <div class="field">
+              <label>Confirmar</label>
+              <input type="password" id="regPass2" placeholder="Repite la contraseña" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Crear Cuenta</button>
+        </form>
+        <div class="auth-alt">¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="core.js"></script>
+<script>
+redirectIfAuthed();
+
+document.getElementById('regForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const msg = document.getElementById('regMsg');
+  msg.className = 'form-msg';
+  const first = document.getElementById('regFirst').value.trim();
+  const last = document.getElementById('regLast').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const country = document.getElementById('regCountry').value;
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!first || !last){
+    msg.textContent = 'Ingresa tu nombre y apellido.';
+    msg.className = 'form-msg err'; return;
+  }
+  if(!EMAIL_RE.test(email)){
+    msg.textContent = 'Ingresa un correo electrónico válido.';
+    msg.className = 'form-msg err'; return;
+  }
+  if(pass.length < 6){
+    msg.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+    msg.className = 'form-msg err'; return;
+  }
+  if(pass !== pass2){
+    msg.textContent = 'Las contraseñas no coinciden.';
+    msg.className = 'form-msg err'; return;
+  }
+  const db = getUsers();
+  if(db[email]){
+    msg.textContent = 'Ya existe una cuenta registrada con ese correo.';
+    msg.className = 'form-msg err'; return;
+  }
+  db[email] = {
+    first, last, email, country,
+    passHash: hashPass(pass),
+    createdAt: new Date().toISOString(),
+    services: [],
+    invoices: [],
+    tickets: []
+  };
+  saveUsers(db);
+  msg.textContent = '¡Cuenta creada correctamente! Iniciando sesión...';
+  msg.className = 'form-msg ok';
+  setTimeout(()=>{
+    setSession(email);
+    location.href = 'panel.html';
+  }, 700);
+});
+</script>
+</body>
+</html>

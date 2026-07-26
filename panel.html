@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Panel | Kernel Shield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="noise-veil"></div>
+
+<div id="guardScreen" class="page-guard">
+  <div class="spin"></div>
+  <p>Verificando tu sesión…</p>
+</div>
+
+<div id="appShell" style="display:none;">
+<header class="topnav">
+  <a href="index.html" class="brand">
+    <img src="assets/logo.png" alt="Kernel Shield">
+    <div class="name">Kernel<span>Shield</span></div>
+  </a>
+  <div class="nav-right">
+    <div class="badge-status"><span class="dot-live"></span> Todos los sistemas operativos</div>
+    <a href="index.html" class="btn btn-ghost btn-sm">Ver sitio público</a>
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="side-user">
+        <div class="avatar" id="sideAvatar">K</div>
+        <div>
+          <div class="u-name" id="sideName">Usuario</div>
+          <div class="u-mail" id="sideMail">correo@mail.com</div>
+        </div>
+      </div>
+      <a href="#" class="side-link active" data-app="dashboard"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span> Dashboard</a>
+      <a href="#" class="side-link" data-app="services"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg></span> Mis Servicios</a>
+      <a href="#" class="side-link" data-app="vps"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="6" rx="1.5"/><rect x="4" y="15" width="16" height="6" rx="1.5"/><circle cx="8" cy="6" r=".6" fill="currentColor" stroke="none"/><circle cx="8" cy="18" r=".6" fill="currentColor" stroke="none"/></svg></span> VPS · Contratar</a>
+      <a href="#" class="side-link" data-app="billing"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span> Facturación</a>
+      <a href="#" class="side-link" data-app="tickets"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a2 2 0 0 0-2-2v-3a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3a2 2 0 0 1 0 4v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3a2 2 0 0 0 2-2Z"/><path d="M10 8v8" stroke-dasharray="1.6 1.6"/></svg></span> Soporte</a>
+      <div class="side-section-title">Cuenta</div>
+      <a href="#" class="side-link" data-app="profile"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></span> Mi Perfil</a>
+      <a href="#" class="side-link" id="logoutBtn"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></span> Cerrar Sesión</a>
+    </aside>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <div class="app-page" id="app-dashboard">
+        <div class="page-head">
+          <div>
+            <h2>Bienvenido, <span id="dashName">Cliente</span></h2>
+            <p>Resumen de tu cuenta Kernel Shield</p>
+          </div>
+          <a href="#" class="btn btn-primary" data-app="vps">+ Contratar VPS</a>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card" style="--accent:#3aa0ff;">
+            <div class="stat-top"><div class="label">Servicios Activos</div><div class="stat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="6" rx="1.5"/><rect x="4" y="15" width="16" height="6" rx="1.5"/></svg></div></div>
+            <div class="value" id="statActive">0</div><div class="sub">En ejecución</div>
+          </div>
+          <div class="stat-card" style="--accent:#33d17a;">
+            <div class="stat-top"><div class="label">Gasto Mensual</div><div class="stat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5.5C15.9 4.5 14.1 4 12 4c-3 0-5 1.6-5 3.8 0 4.6 10 2.6 10 7.4 0 2.2-2.2 3.8-5 3.8-2.1 0-3.9-.5-5-1.5"/></svg></div></div>
+            <div class="value" id="statSpend">$0</div><div class="sub">USD / mes</div>
+          </div>
+          <div class="stat-card" style="--accent:#ffb648;">
+            <div class="stat-top"><div class="label">Tickets Abiertos</div><div class="stat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></div></div>
+            <div class="value" id="statTickets">0</div><div class="sub" id="statTicketsSub">Sin incidencias</div>
+          </div>
+          <div class="stat-card" style="--accent:#7fc4ff;">
+            <div class="stat-top"><div class="label">Miembro desde</div><div class="stat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></div></div>
+            <div class="value" id="statSince" style="font-size:17px;">--</div><div class="sub">Cuenta verificada</div>
+          </div>
+        </div>
+        <div class="panel-box">
+          <h3><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span> Tus servicios</h3>
+          <div id="dashServiceList"></div>
+        </div>
+      </div>
+
+      <!-- SERVICES -->
+      <div class="app-page" id="app-services" style="display:none;">
+        <div class="page-head"><div><h2>Mis Servicios</h2><p>Administra tus VPS y servidores contratados</p></div></div>
+        <div class="panel-box"><div id="servicesTableWrap"></div></div>
+      </div>
+
+      <!-- VPS -->
+      <div class="app-page" id="app-vps" style="display:none;">
+        <div class="page-head"><div><h2>Virtual Private Servers</h2><p>Elige el plan y ordénalo directo a tu cuenta</p></div></div>
+        <div class="plans-toolbar" data-toolbar="app">
+          <div class="tab-chip active" data-tier="essential"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg> Essential</div>
+          <div class="tab-chip" data-tier="premium"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 8 4 3 6-7 6 7 4-3-2 12H4L2 8Z"/></svg> Premium</div>
+        </div>
+        <p class="plan-tier-note" id="appTierNote"></p>
+        <div class="plans-grid" id="appPlansGrid"></div>
+      </div>
+
+      <!-- BILLING -->
+      <div class="app-page" id="app-billing" style="display:none;">
+        <div class="page-head"><div><h2>Facturación</h2><p>Historial y métodos de pago</p></div></div>
+        <div class="panel-box">
+          <h3><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span> Métodos de pago aceptados</h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <span class="tab-chip"><span class="paypal-logo">Pay<b>Pal</b></span></span>
+            <span class="tab-chip"><span class="nequi-logo">Nequi</span></span>
+            <span class="tab-chip"><span class="binance-logo">Binance Pay</span></span>
+          </div>
+        </div>
+        <div class="panel-box">
+          <h3><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10l2 2v16l-3-2-3 2-3-2-3 2V5l0-2Z"/><path d="M9 9h6M9 13h6"/></svg></span> Historial de facturas</h3>
+          <div id="invoiceList"></div>
+        </div>
+      </div>
+
+      <!-- TICKETS -->
+      <div class="app-page" id="app-tickets" style="display:none;">
+        <div class="page-head">
+          <div><h2>Soporte</h2><p>Abre un ticket y te responderemos lo antes posible</p></div>
+          <a href="#" class="btn btn-primary" id="newTicketBtn">+ Nuevo ticket</a>
+        </div>
+
+        <!-- Formulario de nuevo ticket (oculto hasta pulsar "Nuevo ticket") -->
+        <div class="panel-box" id="newTicketBox" style="display:none;">
+          <h3><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a2 2 0 0 0-2-2v-3a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3a2 2 0 0 1 0 4v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3a2 2 0 0 0 2-2Z"/></svg></span> Abrir nuevo ticket</h3>
+          <form id="ticketForm">
+            <div class="field-row">
+              <div class="field">
+                <label>Asunto</label>
+                <input type="text" id="ticketSubject" placeholder="Ej: Problema con mi VPS" required maxlength="120">
+              </div>
+              <div class="field">
+                <label>Categoría</label>
+                <select id="ticketCategory">
+                  <option value="Facturación">Facturación / Pagos</option>
+                  <option value="Técnico">Soporte Técnico</option>
+                  <option value="Cuenta">Mi Cuenta</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Mensaje</label>
+              <textarea id="ticketMessage" rows="4" placeholder="Cuéntanos con detalle qué necesitas..." required maxlength="2000" style="width:100%;background:var(--bg-1);border:1px solid var(--border-soft);border-radius:9px;color:var(--text-0);padding:11px 13px;font-family:inherit;font-size:13.5px;resize:vertical;"></textarea>
+            </div>
+            <div class="form-msg" id="ticketFormMsg"></div>
+            <div class="modal-actions" style="max-width:340px;margin-left:auto;">
+              <button type="button" class="btn btn-ghost btn-block" id="cancelTicketBtn">Cancelar</button>
+              <button type="submit" class="btn btn-primary btn-block">Enviar ticket</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel-box">
+          <div id="ticketListWrap"></div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="app-page" id="app-profile" style="display:none;">
+        <div class="page-head"><div><h2>Mi Perfil</h2><p>Información de tu cuenta</p></div></div>
+        <div class="panel-box" style="max-width:520px;">
+          <div class="field"><label>Nombre completo</label><input type="text" id="profName" disabled></div>
+          <div class="field"><label>Correo electrónico</label><input type="email" id="profEmail" disabled></div>
+          <div class="field"><label>País</label><input type="text" id="profCountry" disabled></div>
+          <button class="btn btn-danger btn-block" onclick="doLogout()">Cerrar Sesión</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div>© 2026 Kernel Shield · kernelshield.xyz</div>
+  <div>VPS de alto rendimiento para LATAM · Pagos verificados manualmente por el equipo</div>
+</footer>
+</div><!-- /appShell -->
+
+<!-- ORDER / CHECKOUT MODAL -->
+<div class="modal-veil" id="orderModal">
+  <div class="modal-box" id="modalStep1">
+    <h3><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span> Confirmar orden</h3>
+    <p class="desc">Revisa los detalles y elige tu método de pago.</p>
+    <div class="order-summary" id="orderSummary"></div>
+
+    <div class="pay-method-box">
+      <div class="pay-method-head">
+        <span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span>
+        Elige tu método de pago
+      </div>
+      <div class="pay-methods-grid" id="payMethodsGrid">
+        <div class="pay-method-card selected" data-method="paypal">
+          <span class="pm-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+          <div class="pm-logo"><span class="paypal-logo">Pay<b>Pal</b></span></div>
+          <div class="pm-name">PayPal</div>
+        </div>
+        <div class="pay-method-card" data-method="nequi">
+          <span class="pm-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+          <div class="pm-logo"><span class="nequi-logo">Nequi</span></div>
+          <div class="pm-name">Nequi</div>
+        </div>
+        <div class="pay-method-card" data-method="binance">
+          <span class="pm-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+          <div class="pm-logo"><span class="binance-logo">Binance</span></div>
+          <div class="pm-name">Binance Pay</div>
+        </div>
+      </div>
+
+      <!-- Detalle PayPal -->
+      <div id="payDetailPaypal">
+        <p class="pay-method-note">Se abrirá una pestaña segura de PayPal para completar tu pago. Al confirmar, tu servicio quedará <b>pendiente de verificación</b> hasta que el equipo lo active.</p>
+      </div>
+
+      <!-- Detalle Nequi -->
+      <div id="payDetailNequi" style="display:none;">
+        <div class="pay-detail-box">
+          <div class="pay-detail-row">
+            <div><div class="label">Número Nequi</div><div class="value">312 848 2212</div></div>
+            <button type="button" class="copy-btn" onclick="copyToClipboard('3128482212', this)">Copiar</button>
+          </div>
+          <div class="qr-row">
+            <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=8&data=3128482212" alt="QR Nequi" loading="lazy">
+            <div class="qr-caption">Escanéalo desde la app de Nequi para copiar el número sin errores de tecleo.</div>
+          </div>
+        </div>
+        <p class="pay-method-note">En celular, al pulsar "Pagar con Nequi" intentaremos abrir tu app automáticamente. Envía el valor exacto al número de arriba y luego confirma abajo — tu servicio quedará <b>pendiente de verificación</b>.</p>
+      </div>
+
+      <!-- Detalle Binance -->
+      <div id="payDetailBinance" style="display:none;">
+        <div class="pay-detail-box">
+          <div class="pay-detail-row">
+            <div><div class="label">Binance Pay UID</div><div class="value">1216562025</div></div>
+            <button type="button" class="copy-btn" onclick="copyToClipboard('1216562025', this)">Copiar</button>
+          </div>
+          <div class="qr-row">
+            <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=8&data=1216562025" alt="QR Binance Pay" loading="lazy">
+            <div class="qr-caption">Escanéalo desde Binance → Pay → Enviar, para copiar el UID sin errores de tecleo.</div>
+          </div>
+        </div>
+        <p class="pay-method-note">Envía el valor exacto por Binance Pay al UID de arriba y luego confirma abajo — tu servicio quedará <b>pendiente de verificación</b>.</p>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-block" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-paypal btn-block" id="goPayBtn">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h8a4 4 0 0 1 0 8h-4l-1 5H7L9 3h7a3 3 0 0 1 3 3"/></svg>
+        <span id="goPayBtnLabel">Pagar con PayPal</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="modal-box" id="modalStep2" style="display:none;">
+    <div class="paypal-wait-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+    <h3>¿Ya completaste el pago?</h3>
+    <p class="desc" id="modalStep2Desc">Confirma abajo cuando termines el pago. Un miembro del equipo verificará la transacción y activará tu servicio manualmente — normalmente en menos de unas horas.</p>
+    <div class="order-summary" id="orderSummaryConfirm"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-block" onclick="backToStep1()">Volver</button>
+      <button class="btn btn-primary btn-block" id="confirmOrderBtn">Sí, ya pagué</button>
+    </div>
+  </div>
+</div>
+
+<!-- TICKET THREAD MODAL -->
+<div class="modal-veil" id="ticketModal">
+  <div class="modal-box" style="max-width:520px;">
+    <h3><span class="ic-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a2 2 0 0 0-2-2v-3a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3a2 2 0 0 1 0 4v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3a2 2 0 0 0 2-2Z"/></svg></span> <span id="ticketModalSubject">Ticket</span></h3>
+    <div id="ticketModalMeta" class="desc"></div>
+    <div id="ticketThreadWrap" style="max-height:340px;overflow-y:auto;margin:14px 0;display:flex;flex-direction:column;gap:10px;"></div>
+    <div id="ticketReplyBox">
+      <div class="field">
+        <label>Responder</label>
+        <textarea id="ticketReplyMsg" rows="3" placeholder="Escribe tu respuesta..." style="width:100%;background:var(--bg-1);border:1px solid var(--border-soft);border-radius:9px;color:var(--text-0);padding:11px 13px;font-family:inherit;font-size:13.5px;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-block" onclick="closeTicketModal()">Cerrar</button>
+      <button class="btn btn-primary btn-block" id="ticketReplyBtn">Enviar respuesta</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="core.js"></script>
+<script src="panel.js"></script>
+</body>
+</html>
