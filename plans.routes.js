@@ -6,7 +6,8 @@ const router = express.Router();
 function serializePlan(p) {
   return {
     id: p.id, tier: p.tier, name: p.name, tag: p.tag,
-    price: p.price, cores: p.cores, ram: p.ram, disk: p.disk,
+    price: parseFloat(p.price) || 0, // <-- Forzar conversión a número aquí
+    cores: p.cores, ram: p.ram, disk: p.disk,
     port: p.port, bw: p.bw, backup: !!p.backup,
   };
 }
