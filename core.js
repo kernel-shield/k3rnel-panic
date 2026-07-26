@@ -4,10 +4,7 @@
    La URL de la API se configura aquí abajo una sola vez.
 ============================================================ */
 
-/* ── URL base de la API ─────────────────────────────────────
-   En desarrollo: http://localhost:4000
-   En producción: https://api.kernelshield.xyz  (o donde corras el servidor)
-   ─────────────────────────────────────────────────────────── */
+/* ── URL base de la API ───────────────────────────────────── */
 const API = window.KS_API_URL || 'https://api.kernelshield.xyz';
 
 /* ── XSS guard ─────────────────────────────────────────────── */
@@ -27,7 +24,7 @@ const ICON_SVG = {
   cpu:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>`,
   gauge:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14 15 10"/><circle cx="12" cy="14" r="1"/><path d="M4.9 19a9 9 0 1 1 14.2 0"/></svg>`,
   disk:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>`,
-  shieldCheck:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>`,
+  shieldCheck: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>`,
   copy:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
   ext:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>`,
 };
@@ -79,7 +76,7 @@ function planCardHTML(p, ctx, tier){
 ============================================================ */
 async function apiFetch(path, opts={}){
   const res = await fetch(API + path, {
-    credentials: 'include',      // envía/recibe cookies de sesión entre dominios cruzados
+    credentials: 'include',       // envía/recibe cookies de sesión entre dominios cruzados
     headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) },
     ...opts,
     body: opts.body ? JSON.stringify(opts.body) : undefined,
@@ -96,7 +93,8 @@ let _userCache = null;
 async function currentUser(){
   if(_userCache) return _userCache;
   const { ok, data } = await apiFetch('/api/auth/me');
-  _userCache = ok ? data : null;
+  // Extrae la propiedad .user si el backend la devuelve envuelta
+  _userCache = ok ? (data.user || data) : null;
   return _userCache;
 }
 
@@ -125,10 +123,20 @@ async function getPlansDB(){
   if(_plansCache) return _plansCache;
   const { ok, data } = await apiFetch('/api/plans');
   if(ok && data){
-    _plansCache = {
-      essential: (data.plans || data).filter(p => p.tier === 'essential'),
-      premium:   (data.plans || data).filter(p => p.tier === 'premium'),
-    };
+    // Si la API devuelve un objeto con { essential: [...], premium: [...] }
+    if (!Array.isArray(data) && (data.essential || data.premium)) {
+      _plansCache = {
+        essential: data.essential || [],
+        premium: data.premium || []
+      };
+    } else {
+      const list = data.plans || data;
+      const arr = Array.isArray(list) ? list : [];
+      _plansCache = {
+        essential: arr.filter(p => p.tier === 'essential'),
+        premium:   arr.filter(p => p.tier === 'premium'),
+      };
+    }
   } else {
     _plansCache = { essential: [], premium: [] };
   }
@@ -238,7 +246,7 @@ async function initPublicNav(activeKey){
   if(navRight && user){
     navRight.innerHTML = `
       <div class="badge-status"><span class="dot-live"></span> Todos los sistemas operativos</div>
-      <a href="panel.html" class="btn btn-ghost btn-sm">Hola, ${esc(user.first)}</a>
+      <a href="panel.html" class="btn btn-ghost btn-sm">Hola, ${esc(user.first || user.name || 'Usuario')}</a>
       <a href="panel.html" class="btn btn-primary btn-sm">Ir al Panel</a>`;
   }
 }
