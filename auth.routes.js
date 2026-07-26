@@ -14,15 +14,17 @@ router.post('/register', async (req, res) => {
     if (!EMAIL_RE.test(cleanEmail)) return res.status(400).json({ error: 'Ingresa un correo electrónico válido.' });
     if (!password || password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
 
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(cleanEmail);
-    if (existing) return res.status(409).json({ error: 'Ya existe una cuenta registrada con ese correo.' });
+    const existingRes = await db.query('SELECT id FROM users WHERE email = $1', [cleanEmail]);
+    if (existingRes.rows.length > 0) return res.status(409).json({ error: 'Ya existe una cuenta registrada con ese correo.' });
 
     const passHash = await hashPassword(password);
-    const info = db.prepare(`
-      INSERT INTO users (first, last, email, country, pass_hash) VALUES (?, ?, ?, ?, ?)
-    `).run(first.trim(), last.trim(), cleanEmail, country || null, passHash);
+    const insertRes = await db.query(
+      `INSERT INTO users (first, last, email, country, pass_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [first.trim(), last.trim(), cleanEmail, country || null, passHash]
+    );
 
-    const user = { id: info.lastInsertRowid, email: cleanEmail };
+    const userId = insertRes.rows[0].id;
+    const user = { id: userId, email: cleanEmail };
     setUserCookie(res, user);
     res.status(201).json({ ok: true, user: { id: user.id, first, last, email: cleanEmail, country } });
   } catch (e) {
@@ -35,9 +37,11 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body || {};
     const cleanEmail = String(email || '').trim().toLowerCase();
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(cleanEmail);
-    if (!user) return res.status(401).json({ error: 'Correo o contraseña incorrectos.' });
-
+    
+    const userRes = await db.query('SELECT * FROM users WHERE email = $1', [cleanEmail]);
+    if (userRes.rows.length === 0) return res.status(401).json({ error: 'Correo o contraseña incorrectos.' });
+    
+    const user = userRes.rows[0];
     const ok = await comparePassword(password || '', user.pass_hash);
     if (!ok) return res.status(401).json({ error: 'Correo o contraseña incorrectos.' });
 
@@ -54,10 +58,16 @@ router.post('/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, first, last, email, country, created_at FROM users WHERE id = ?').get(req.userId);
-  if (!user) return res.status(404).json({ error: 'Usuario no encontrado.' });
-  res.json({ user });
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const userRes = await db.query('SELECT id, first, last, email, country, created_at FROM users WHERE id = $1', [req.userId]);
+    if (userRes.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado.' });
+    const user = userRes.rows[0];
+    res.json({ user });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
 });
 
 module.exports = router;
