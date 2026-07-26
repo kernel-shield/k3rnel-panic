@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const db = require('../db');
+const db = require('./db');
 const { setAdminCookie, clearAdminCookie, requireAdmin } = require('../auth');
 
 const router = express.Router();
