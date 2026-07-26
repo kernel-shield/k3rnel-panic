@@ -9,65 +9,97 @@ function genId(prefix) {
   return `${prefix}-${crypto.randomInt(100000, 999999)}`;
 }
 
-function ticketWithMessages(ticketId) {
-  const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(ticketId);
-  if (!ticket) return null;
-  const messages = db.prepare('SELECT * FROM ticket_messages WHERE ticket_id = ? ORDER BY id ASC').all(ticketId);
-  return { ...ticket, messages };
+async function ticketWithMessages(ticketId) {
+  const ticketRes = await db.query('SELECT * FROM tickets WHERE id = $1', [ticketId]);
+  if (ticketRes.rows.length === 0) return null;
+  const ticket = ticketRes.rows[0];
+  const msgRes = await db.query('SELECT * FROM ticket_messages WHERE ticket_id = $1 ORDER BY id ASC', [ticketId]);
+  return { ...ticket, messages: msgRes.rows };
 }
 
-/* Listar tickets propios (sin los mensajes, para la lista) */
-router.get('/', requireAuth, (req, res) => {
-  const tickets = db.prepare('SELECT * FROM tickets WHERE user_id = ? ORDER BY date DESC').all(req.userId);
-  const withCounts = tickets.map(t => {
-    const count = db.prepare('SELECT COUNT(*) AS c FROM ticket_messages WHERE ticket_id = ?').get(t.id).c;
-    return { ...t, messageCount: count };
-  });
-  res.json({ tickets: withCounts });
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    const ticketsRes = await db.query('SELECT * FROM tickets WHERE user_id = $1 ORDER BY date DESC', [req.userId]);
+    const tickets = ticketsRes.rows;
+    
+    const withCounts = [];
+    for (let t of tickets) {
+      const countRes = await db.query('SELECT COUNT(*) AS c FROM ticket_messages WHERE ticket_id = $1', [t.id]);
+      withCounts.push({ ...t, messageCount: parseInt(countRes.rows[0].c, 10) });
+    }
+    res.json({ tickets: withCounts });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al listar tickets.' });
+  }
 });
 
-/* Ver el hilo completo de un ticket propio */
-router.get('/:id', requireAuth, (req, res) => {
-  const ticket = db.prepare('SELECT * FROM tickets WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
-  if (!ticket) return res.status(404).json({ error: 'Ticket no encontrado.' });
-  res.json({ ticket: ticketWithMessages(req.params.id) });
+router.get('/:id', requireAuth, async (req, res) => {
+  try {
+    const ticketRes = await db.query('SELECT * FROM tickets WHERE id = $1 AND user_id = $2', [req.params.id, req.userId]);
+    if (ticketRes.rows.length === 0) return res.status(404).json({ error: 'Ticket no encontrado.' });
+    const fullTicket = await ticketWithMessages(req.params.id);
+    res.json({ ticket: fullTicket });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al obtener el ticket.' });
+  }
 });
 
-/* Crear ticket nuevo */
-router.post('/', requireAuth, (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   const { subject, category, message } = req.body || {};
   if (!subject || !message) return res.status(400).json({ error: 'Completa el asunto y el mensaje.' });
 
   const id = genId('TCK');
-  const tx = db.transaction(() => {
-    db.prepare(`
-      INSERT INTO tickets (id, user_id, subject, category, status) VALUES (?, ?, ?, ?, 'open')
-    `).run(id, req.userId, subject.trim(), category || 'Otro');
-    db.prepare(`
-      INSERT INTO ticket_messages (ticket_id, from_role, text) VALUES (?, 'client', ?)
-    `).run(id, message.trim());
-  });
-  tx();
+  const client = await db.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `INSERT INTO tickets (id, user_id, subject, category, status) VALUES ($1, $2, $3, $4, 'open')`,
+      [id, req.userId, subject.trim(), category || 'Otro']
+    );
+    await client.query(
+      `INSERT INTO ticket_messages (ticket_id, from_role, text) VALUES ($1, 'client', $2)`,
+      [id, message.trim()]
+    );
+    await client.query('COMMIT');
 
-  res.status(201).json({ ok: true, ticket: ticketWithMessages(id) });
+    const fullTicket = await ticketWithMessages(id);
+    res.status(201).json({ ok: true, ticket: fullTicket });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error(e);
+    res.status(500).json({ error: 'Error al crear el ticket.' });
+  } finally {
+    client.release();
+  }
 });
 
-/* Responder en un ticket propio (vuelve a marcarlo como "open" para el equipo) */
-router.post('/:id/reply', requireAuth, (req, res) => {
-  const ticket = db.prepare('SELECT * FROM tickets WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
-  if (!ticket) return res.status(404).json({ error: 'Ticket no encontrado.' });
+router.post('/:id/reply', requireAuth, async (req, res) => {
+  const ticketRes = await db.query('SELECT * FROM tickets WHERE id = $1 AND user_id = $2', [req.params.id, req.userId]);
+  if (ticketRes.rows.length === 0) return res.status(404).json({ error: 'Ticket no encontrado.' });
+  const ticket = ticketRes.rows[0];
   if (ticket.status === 'closed') return res.status(400).json({ error: 'Este ticket está cerrado y ya no acepta respuestas.' });
 
   const { message } = req.body || {};
   if (!message || !message.trim()) return res.status(400).json({ error: 'Escribe un mensaje.' });
 
-  const tx = db.transaction(() => {
-    db.prepare(`INSERT INTO ticket_messages (ticket_id, from_role, text) VALUES (?, 'client', ?)`).run(ticket.id, message.trim());
-    db.prepare(`UPDATE tickets SET status = 'open' WHERE id = ?`).run(ticket.id);
-  });
-  tx();
+  const client = await db.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`INSERT INTO ticket_messages (ticket_id, from_role, text) VALUES ($1, 'client', $2)`, [ticket.id, message.trim()]);
+    await client.query(`UPDATE tickets SET status = 'open' WHERE id = $1`, [ticket.id]);
+    await client.query('COMMIT');
 
-  res.json({ ok: true, ticket: ticketWithMessages(ticket.id) });
+    const fullTicket = await ticketWithMessages(ticket.id);
+    res.json({ ok: true, ticket: fullTicket });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error(e);
+    res.status(500).json({ error: 'Error al responder el ticket.' });
+  } finally {
+    client.release();
+  }
 });
 
 module.exports = router;
