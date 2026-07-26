@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require('../db');
+const db = require('./db');
 const { hashPassword, comparePassword, setUserCookie, clearUserCookie, requireAuth } = require('../auth');
 
 const router = express.Router();
