@@ -8,7 +8,7 @@
    En desarrollo: http://localhost:4000
    En producción: https://api.kernelshield.xyz  (o donde corras el servidor)
    ─────────────────────────────────────────────────────────── */
-const API = window.KS_API_URL || 'https://k3rnel-panic.onrender.com/';
+const API = window.KS_API_URL || 'https://k3rnel-panic.onrender.com';
 
 /* ── XSS guard ─────────────────────────────────────────────── */
 function esc(str){
