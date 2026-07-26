@@ -29,15 +29,16 @@ router.post('/', requireAuth, async (req, res) => {
     const invId = genId('INV');
     const name = `VPS ${plan.name}`;
     const spec = `${plan.cores} vCores · ${plan.ram} RAM · ${plan.disk}`;
+    const price = parseFloat(plan.price) || 0;
 
     await client.query('BEGIN');
     await client.query(
       `INSERT INTO services (id, user_id, plan_id, name, spec, price, method, status) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')`,
-      [svcId, req.userId, plan.id, name, spec, plan.price, method]
+      [svcId, req.userId, plan.id, name, spec, price, method]
     );
     await client.query(
       `INSERT INTO invoices (id, user_id, svc_id, "desc", amount, method, status) VALUES ($1, $2, $3, $4, $5, $6, 'pending')`,
-      [invId, req.userId, svcId, name, plan.price, method]
+      [invId, req.userId, svcId, name, price, method]
     );
     await client.query('COMMIT');
 
