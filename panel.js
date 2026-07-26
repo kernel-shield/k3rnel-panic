@@ -264,13 +264,15 @@ document.getElementById('ticketReplyBtn').addEventListener('click', async ()=>{
 let pendingPlan=null, pendingInvoiceId=null, pendingMethod='paypal';
 
 async function orderPlan(planId, ctx, tier){
-  const plansDB = await getPlansDB();
-  const list    = tier==='premium' ? plansDB.premium : plansDB.essential;
-  pendingPlan   = list.find(p=>p.id===planId);
-  if(!pendingPlan){ showToast('Ese plan ya no está disponible.'); return; }
-  pendingInvoiceId = 'INV-'+Math.floor(100000+Math.random()*900000);
-  pendingMethod = 'paypal';
-  selectPayMethod('paypal');
+    const plansData = await getPlansDB();
+    const allPlans = [...(plansData.essential || []), ...(plansData.premium || []), ...(Array.isArray(plansData) ? plansData : [])];
+    
+    pendingPlan = allPlans.find(p => String(p.id) === String(planId) || slugify(p.name) === String(planId));
+    
+    if(!pendingPlan) { showToast('Ese plan ya no está disponible.'); return; }
+    pendingInvoiceId = 'INV-' + Math.floor(100000 + Math.random()*900000);
+    pendingMethod = 'paypal';
+    selectPayMethod('paypal');
 
   const summaryHTML = `
     <div class="row"><span>Plan</span><span>${esc(pendingPlan.name)}</span></div>
