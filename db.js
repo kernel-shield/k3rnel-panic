@@ -57,7 +57,7 @@ async function initDB() {
         id TEXT PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         svc_id TEXT REFERENCES services(id) ON DELETE SET NULL,
-        desc TEXT NOT NULL,
+        "desc" TEXT NOT NULL,
         amount REAL NOT NULL,
         method TEXT NOT NULL DEFAULT 'paypal',
         status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','paid','rejected')),
@@ -128,7 +128,6 @@ async function initDB() {
 
 initDB();
 
-// Exportar pool con una interfaz compatible para consultas simples si es necesario
 module.exports = {
   query: (text, params) => pool.query(text, params),
   pool
