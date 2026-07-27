@@ -1,5 +1,5 @@
 /* ============================================================
-   KERNEL SHIELD — ADMIN.JS (versión API real)
+   KERNEL SHIELD — ADMIN.JS (versión API real corregida)
    Requiere core.js cargado antes.
    El admin se autentica con POST /api/admin/login (cookie aparte).
 ============================================================ */
@@ -23,8 +23,8 @@ let adminFailCount = 0;
 
 document.getElementById('adminGateForm').addEventListener('submit', async function(e){
   e.preventDefault();
-  const msg       = document.getElementById('adminGateMsg');
-  const passInput = document.getElementById('adminGatePass');
+  const msg        = document.getElementById('adminGateMsg');
+  const passInput  = document.getElementById('adminGatePass');
   if(adminFailCount>=5){ msg.textContent='Demasiados intentos. Recarga la página.'; msg.className='form-msg err'; return; }
   showLoading('Verificando...');
   const { ok, data } = await apiFetch('/api/admin/login', { method:'POST', body:{ password: passInput.value } });
@@ -131,11 +131,14 @@ async function adminDeleteOrder(id){
 let adminPlanTier = 'essential';
 
 async function renderAdminPlans(){
-  const plansDB = await getPlansDB();
   invalidatePlansCache(); // forzar re-fetch la próxima vez
   const { ok, data } = await apiFetch('/api/plans');
-  const allPlans = ok ? (data.plans||data||[]) : [];
-  const list = allPlans.filter(p=>p.tier===adminPlanTier);
+  
+  // Blindaje estricto para asegurar que allPlans sea un array válido siempre
+  const rawPlans = ok ? (data.plans || data || []) : [];
+  const allPlans = Array.isArray(rawPlans) ? rawPlans : [];
+
+  const list = allPlans.filter(p => p.tier === adminPlanTier);
   const wrap = document.getElementById('adminPlansWrap'); if(!wrap) return;
 
   if(!list.length){
@@ -176,7 +179,8 @@ function openPlanModal(mode, tier, planId){
   document.getElementById('planTier').value=tier;
   if(mode==='edit'){
     apiFetch('/api/plans').then(({data})=>{
-      const all=data.plans||data||[];
+      const rawAll = data.plans || data || [];
+      const all = Array.isArray(rawAll) ? rawAll : [];
       const p=all.find(x=>x.id===planId); if(!p) return;
       document.getElementById('planModalTitle').textContent='Editar plan VPS';
       document.getElementById('planId').value=p.id;
