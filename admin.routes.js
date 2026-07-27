@@ -35,7 +35,7 @@ router.get('/orders', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT s.*, u.first, u.last, u.email
-      FROM services s JOIN users u ON u.id = s.user_id
+      FROM services s JOIN users u ON u.id::text = s.user_id
       ORDER BY s.date DESC
     `);
     res.json({ orders: result.rows });
