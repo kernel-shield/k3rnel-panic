@@ -71,7 +71,7 @@ async function renderDashboard(){
   ]);
   hideLoading();
 
-  const orders  = ordersRes.ok  ? (ordersRes.data.orders  || []) : [];
+  const orders  = ordersRes.ok  ? (ordersRes.data.orders || ordersRes.data.services || []) : [];
   const tickets = ticketsRes.ok ? (ticketsRes.data.tickets || []) : [];
 
   const services = orders.filter(o=>o.type==='service'||!o.type);
@@ -95,7 +95,7 @@ async function renderDashboard(){
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed var(--border-soft);">
       <div>
         <div style="font-weight:600;font-size:13.5px;">${esc(s.name)}</div>
-        <div style="font-size:11.5px;color:var(--text-2);">Contratado el ${new Date(s.created_at||s.date).toLocaleDateString('es-CO')} · ${payMethodTagHTML(s.method)}</div>
+        <div style="font-size:11.5px;color:var(--text-2);">Contratado el ${new Date(s.created_at||s.date||Date.now()).toLocaleDateString('es-CO')} · ${payMethodTagHTML(s.method)}</div>
         ${s.status==='rejected'?`<div style="font-size:11px;color:var(--red);">Motivo: ${esc(s.reject_reason||s.rejectReason||'')}</div>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:14px;">
@@ -127,7 +127,7 @@ async function renderServices(){
             <td>${payMethodTagHTML(s.method)}</td>
             <td style="font-family:var(--mono);">$${Number(s.price).toFixed(2)}/mes</td>
             <td>${pillHTML(s.status)}${s.status==='rejected'?` <a href="#" class="btn btn-primary btn-sm" style="margin-left:8px;" data-app="vps">Reintentar</a>`:''}</td>
-            <td style="color:var(--text-2);">${new Date(s.created_at||s.date).toLocaleDateString('es-CO')}</td>
+            <td style="color:var(--text-2);">${new Date(s.created_at||s.date||Date.now()).toLocaleDateString('es-CO')}</td>
           </tr>`).join('')}
       </tbody>
     </table>`;
@@ -264,15 +264,13 @@ document.getElementById('ticketReplyBtn').addEventListener('click', async ()=>{
 let pendingPlan=null, pendingInvoiceId=null, pendingMethod='paypal';
 
 async function orderPlan(planId, ctx, tier){
-    const plansData = await getPlansDB();
-    const allPlans = [...(plansData.essential || []), ...(plansData.premium || []), ...(Array.isArray(plansData) ? plansData : [])];
-    
-    pendingPlan = allPlans.find(p => String(p.id) === String(planId) || slugify(p.name) === String(planId));
-    
-    if(!pendingPlan) { showToast('Ese plan ya no está disponible.'); return; }
-    pendingInvoiceId = 'INV-' + Math.floor(100000 + Math.random()*900000);
-    pendingMethod = 'paypal';
-    selectPayMethod('paypal');
+  const plansDB = await getPlansDB();
+  const list    = tier==='premium' ? plansDB.premium : plansDB.essential;
+  pendingPlan   = list.find(p=>p.id===planId);
+  if(!pendingPlan){ showToast('Ese plan ya no está disponible.'); return; }
+  pendingInvoiceId = 'INV-'+Math.floor(100000+Math.random()*900000);
+  pendingMethod = 'paypal';
+  selectPayMethod('paypal');
 
   const summaryHTML = `
     <div class="row"><span>Plan</span><span>${esc(pendingPlan.name)}</span></div>

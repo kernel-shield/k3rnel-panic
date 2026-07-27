@@ -121,28 +121,32 @@ let _plansCache = null;
 
 async function getPlansDB(){
   if(_plansCache) return _plansCache;
-  const { ok, data } = await apiFetch('/api/plans');
-  if(ok && data){
-    // Si la API devuelve un objeto con { essential: [...], premium: [...] }
+  try {
+    const { ok, data } = await apiFetch('/api/plans');
+    if(!ok || !data){
+      console.warn('[core] /api/plans no respondió correctamente:', data);
+      return { essential: [], premium: [] };
+    }
+    // La API devuelve { essential:[...], premium:[...] }
     if (!Array.isArray(data) && (data.essential || data.premium)) {
       _plansCache = {
-        essential: data.essential || [],
-        premium: data.premium || []
+        essential: Array.isArray(data.essential) ? data.essential : [],
+        premium:   Array.isArray(data.premium)   ? data.premium   : [],
       };
     } else {
-      const list = data.plans || data;
-      const arr = Array.isArray(list) ? list : [];
+      // Fallback si viene un array plano
+      const arr = Array.isArray(data) ? data : (data.plans || []);
       _plansCache = {
-        essential: arr.filter(p => p.tier === 'essential'),
-        premium:   arr.filter(p => p.tier === 'premium'),
+        essential: arr.filter(p=>p.tier==='essential'),
+        premium:   arr.filter(p=>p.tier==='premium'),
       };
     }
-  } else {
-    _plansCache = { essential: [], premium: [] };
+  } catch(e) {
+    console.error('[core] Error cargando planes:', e);
+    return { essential: [], premium: [] };
   }
   return _plansCache;
 }
-
 function invalidatePlansCache(){ _plansCache = null; }
 
 /* ============================================================
