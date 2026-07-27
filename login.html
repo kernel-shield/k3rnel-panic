@@ -71,10 +71,29 @@
 <div class="toast" id="toast"></div>
 <script src="core.js"></script>
 <script>
-// Inicialización del cliente de Supabase en el navegador
-const supabaseUrl = 'https://vptcxzbbrxilfaqoxxvt.supabase.co';
-const supabaseAnonKey = 'AQUI_TU_SUPABASE_ANON_KEY'; // Reemplaza por tu llave anon pública de Supabase
-const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+// Función global de Google Auth con cliente seguro independiente
+async function loginWithGoogle() {
+  try {
+    const supabaseUrl = 'https://vptcxzbbrxilfaqoxxvt.supabase.co';
+    const supabaseAnonKey = 'AQUI_TU_SUPABASE_ANON_KEY'; // Reemplaza por tu llave anon pública de Supabase si aplica
+    const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    const { error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/panel.html'
+      }
+    });
+    if (error) throw error;
+  } catch (err) {
+    if (typeof showToast === 'function') {
+      showToast('Error al conectar con Google');
+    } else {
+      alert('Error al conectar con Google');
+    }
+    console.error(err);
+  }
+}
 
 (async()=>{ await redirectIfAuthed(); })();
 
@@ -99,23 +118,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   const next = params.get('next');
   location.href = next === 'vps' ? 'vps.html' : 'panel.html';
 });
-
-async function loginWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin + '/panel.html'
-    }
-  });
-  if (error) {
-    if (typeof showToast === 'function') {
-      showToast('Error al conectar con Google');
-    } else {
-      alert('Error al conectar con Google');
-    }
-    console.error(error);
-  }
-}
 </script>
 </body>
 </html>
