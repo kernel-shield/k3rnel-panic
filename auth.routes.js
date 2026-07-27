@@ -74,13 +74,12 @@ router.get('/me', requireAuth, async (req, res) => {
     let userRes;
     try {
       userRes = await db.query(
-        'SELECT id, first, last, email, country, discord, date AS created_at FROM users WHERE id = $1',
+        'SELECT id, first, last, email, country, discord, created_at FROM users WHERE id = $1',
         [req.userId]
       );
     } catch (colErr) {
-      // La columna discord todavía no existe — usar SELECT sin ella
       userRes = await db.query(
-        'SELECT id, first, last, email, country, date AS created_at FROM users WHERE id = $1',
+        'SELECT id, first, last, email, country, created_at FROM users WHERE id = $1',
         [req.userId]
       );
     }
