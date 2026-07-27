@@ -59,23 +59,26 @@ let publicTier = 'essential';
 let cachedPlans = { essential: [], premium: [] };
 
 async function loadAndRenderPublicPlans() {
-  showLoading('Cargando planes...');
-  const { ok, data } = await apiFetch('/api/plans');
-  hideLoading();
-
-  if (ok && data) {
-    // Si la API devuelve los arrays directos o dentro de un objeto
-    const rawAll = data.plans || (Array.isArray(data) ? data : []);
-    cachedPlans.essential = data.essential || rawAll.filter(p => p.tier === 'essential');
-    cachedPlans.premium = data.premium || rawAll.filter(p => p.tier === 'premium');
+  try {
+    const { ok, data } = await apiFetch('/api/plans');
+    if (ok && data) {
+      const rawAll = data.plans || (Array.isArray(data) ? data : []);
+      cachedPlans.essential = data.essential || rawAll.filter(p => p.tier === 'essential');
+      cachedPlans.premium = data.premium || rawAll.filter(p => p.tier === 'premium');
+    }
+  } catch (e) {
+    console.error('Error cargando planes:', e);
   }
   renderPublicPlans();
 }
 
 function renderPublicPlans(){
-  const list = publicTier === 'premium' ? cachedPlans.premium : cachedPlans.essential;
+  // Blindaje absoluto: si cachedPlans es indefinido, usa un array vacío para evitar que .map falle
+  const list = (publicTier === 'premium' ? cachedPlans.premium : cachedPlans.essential) || [];
   const grid = document.getElementById('publicPlansGrid');
   const note = document.getElementById('publicTierNote');
+
+  if (!grid) return;
 
   if (!list.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><p>No hay planes disponibles en esta categoría por el momento.</p></div>`;
@@ -83,12 +86,14 @@ function renderPublicPlans(){
     return;
   }
 
-  grid.innerHTML = list.map(p => planCardHTML(p, 'public', publicTier)).join('');
+  grid.innerHTML = list.map(p => typeof planCardHTML === 'function' ? planCardHTML(p, 'public', publicTier) : '').join('');
+  
   if(note && typeof TIER_META !== 'undefined' && TIER_META[publicTier]) {
     note.innerHTML = TIER_META[publicTier].note;
   }
 }
 
+// Ejecutar carga inicial
 loadAndRenderPublicPlans();
 
 document.querySelector('[data-toolbar="public"]').addEventListener('click', (e)=>{
@@ -99,9 +104,6 @@ document.querySelector('[data-toolbar="public"]').addEventListener('click', (e)=
   renderPublicPlans();
 });
 
-/* Ordenar desde la página pública: si no hay sesión, va a login.
-   Si ya hay sesión, lo mandamos directo al panel con ese plan
-   preseleccionado para completar el checkout ahí. */
 function orderPlan(planId, ctx, tier){
   const user = currentUser();
   if(!user){
