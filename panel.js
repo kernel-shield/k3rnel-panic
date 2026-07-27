@@ -389,7 +389,7 @@ function showPostPayScreen(){
             <div style="font-size:22px;margin-bottom:6px;">💬</div>
             <div style="font-weight:700;font-size:13px;color:#7289da;margin-bottom:6px;">Discord</div>
             <p style="font-size:12px;color:var(--text-2);margin:0 0 10px;">Únete al servidor, abre un ticket y gestiona tu entrega ahí.</p>
-            <a href="https://discord.gg/TU-INVITE" target="_blank" rel="noopener" class="btn btn-sm" style="background:#7289da;color:#fff;border:none;width:100%;">Ir al servidor</a>
+            <a href="https://discord.com/invite/7tqGFCwj7y" target="_blank" rel="noopener" class="btn btn-sm" style="background:#7289da;color:#fff;border:none;width:100%;">Ir al servidor</a>
           </div>
           <div class="panel-box" style="background:rgba(58,160,255,0.06);border:1.5px solid rgba(58,160,255,0.2);padding:16px;text-align:center;">
             <div style="font-size:22px;margin-bottom:6px;">🎫</div>
