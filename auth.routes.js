@@ -18,10 +18,19 @@ router.post('/register', async (req, res) => {
     if (existingRes.rows.length > 0) return res.status(409).json({ error: 'Ya existe una cuenta registrada con ese correo.' });
 
     const passHash = await hashPassword(password);
-    const insertRes = await db.query(
-      `INSERT INTO users (first, last, email, country, discord, pass_hash) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [first.trim(), last.trim(), cleanEmail, country || null, discord ? discord.trim() : null, passHash]
-    );
+    let insertRes;
+    try {
+      insertRes = await db.query(
+        `INSERT INTO users (first, last, email, country, discord, pass_hash) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [first.trim(), last.trim(), cleanEmail, country || null, discord ? discord.trim() : null, passHash]
+      );
+    } catch (colErr) {
+      // Columna discord aún no existe — insertar sin ella
+      insertRes = await db.query(
+        `INSERT INTO users (first, last, email, country, pass_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [first.trim(), last.trim(), cleanEmail, country || null, passHash]
+      );
+    }
 
     const userId = insertRes.rows[0].id;
     const user = { id: userId, email: cleanEmail };
@@ -60,10 +69,24 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    const userRes = await db.query('SELECT id, first, last, email, country, discord, date AS created_at FROM users WHERE id = $1', [req.userId]);
+    // Intentamos con discord; si la columna aún no existe en la BD,
+    // caemos al SELECT sin ella para no romper el login.
+    let userRes;
+    try {
+      userRes = await db.query(
+        'SELECT id, first, last, email, country, discord, date AS created_at FROM users WHERE id = $1',
+        [req.userId]
+      );
+    } catch (colErr) {
+      // La columna discord todavía no existe — usar SELECT sin ella
+      userRes = await db.query(
+        'SELECT id, first, last, email, country, date AS created_at FROM users WHERE id = $1',
+        [req.userId]
+      );
+    }
     if (userRes.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado.' });
     const user = userRes.rows[0];
-    res.json({ user });
+    res.json({ user: { ...user, discord: user.discord || null } });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error interno del servidor.' });
