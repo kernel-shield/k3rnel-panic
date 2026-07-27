@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<!-- Supabase JS SDK CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="noise-veil"></div>
@@ -69,6 +71,11 @@
 <div class="toast" id="toast"></div>
 <script src="core.js"></script>
 <script>
+// Inicialización del cliente de Supabase en el navegador
+const supabaseUrl = 'https://vptcxzbbrxilfaqoxxvt.supabase.co';
+const supabaseAnonKey = 'AQUI_TU_SUPABASE_ANON_KEY'; // Reemplaza por tu llave anon pública de Supabase
+const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
 (async()=>{ await redirectIfAuthed(); })();
 
 document.getElementById('loginForm').addEventListener('submit', async function(e){
