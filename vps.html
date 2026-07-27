@@ -56,14 +56,40 @@
 initPublicNav('vps');
 
 let publicTier = 'essential';
+let cachedPlans = { essential: [], premium: [] };
+
+async function loadAndRenderPublicPlans() {
+  showLoading('Cargando planes...');
+  const { ok, data } = await apiFetch('/api/plans');
+  hideLoading();
+
+  if (ok && data) {
+    // Si la API devuelve los arrays directos o dentro de un objeto
+    const rawAll = data.plans || (Array.isArray(data) ? data : []);
+    cachedPlans.essential = data.essential || rawAll.filter(p => p.tier === 'essential');
+    cachedPlans.premium = data.premium || rawAll.filter(p => p.tier === 'premium');
+  }
+  renderPublicPlans();
+}
 
 function renderPublicPlans(){
-  const plansDB = getPlansDB();
-  const list = publicTier === 'premium' ? plansDB.premium : plansDB.essential;
-  document.getElementById('publicPlansGrid').innerHTML = list.map(p=>planCardHTML(p,'public',publicTier)).join('');
-  document.getElementById('publicTierNote').innerHTML = TIER_META[publicTier].note;
+  const list = publicTier === 'premium' ? cachedPlans.premium : cachedPlans.essential;
+  const grid = document.getElementById('publicPlansGrid');
+  const note = document.getElementById('publicTierNote');
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><p>No hay planes disponibles en esta categoría por el momento.</p></div>`;
+    if(note) note.innerHTML = '';
+    return;
+  }
+
+  grid.innerHTML = list.map(p => planCardHTML(p, 'public', publicTier)).join('');
+  if(note && typeof TIER_META !== 'undefined' && TIER_META[publicTier]) {
+    note.innerHTML = TIER_META[publicTier].note;
+  }
 }
-renderPublicPlans();
+
+loadAndRenderPublicPlans();
 
 document.querySelector('[data-toolbar="public"]').addEventListener('click', (e)=>{
   const chip = e.target.closest('.tab-chip[data-tier]');
@@ -75,8 +101,7 @@ document.querySelector('[data-toolbar="public"]').addEventListener('click', (e)=
 
 /* Ordenar desde la página pública: si no hay sesión, va a login.
    Si ya hay sesión, lo mandamos directo al panel con ese plan
-   preseleccionado para completar el checkout ahí (donde vive el
-   modal de pago real). */
+   preseleccionado para completar el checkout ahí. */
 function orderPlan(planId, ctx, tier){
   const user = currentUser();
   if(!user){
