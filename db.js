@@ -32,6 +32,7 @@ async function initDB(){
         last       TEXT NOT NULL,
         email      TEXT NOT NULL UNIQUE,
         country    TEXT,
+        discord    TEXT,
         pass_hash  TEXT NOT NULL,
         date       TEXT NOT NULL DEFAULT (NOW()::text)
       );

@@ -4,6 +4,7 @@ const db = require('./db');
 const { setAdminCookie, clearAdminCookie, requireAdmin } = require('./auth');
 
 const router = express.Router();
+
 // RUTA TEMPORAL — eliminar después de obtener el hash
 router.get('/gen-hash/:pass', async (req, res) => {
   const hash = await bcrypt.hash(req.params.pass, 10);
@@ -13,8 +14,6 @@ router.get('/gen-hash/:pass', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { password } = req.body || {};
   const hash = process.env.ADMIN_PASSWORD_HASH;
-  console.log('[admin/login] password recibido:', password);
-  console.log('[admin/login] hash en env:', hash ? hash.substring(0,20)+'...' : 'NO HAY HASH');
   if (!hash) {
     return res.status(500).json({ error: 'El servidor no tiene configurada la contraseña de admin.' });
   }
@@ -34,7 +33,7 @@ router.use(requireAdmin);
 router.get('/orders', async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT s.*, u.first, u.last, u.email, u.country, u.discord
+      SELECT s.*, u.first, u.last, u.email
       FROM services s JOIN users u ON u.id::text = s.user_id
       ORDER BY s.date DESC
     `);
@@ -145,8 +144,8 @@ router.delete('/orders/:id', async (req, res) => {
 router.get('/tickets', async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT t.*, u.first, u.last, u.email, u.country, u.discord
-      FROM tickets t JOIN users u ON u.id = t.user_id
+      SELECT t.*, u.first, u.last, u.email
+      FROM tickets t JOIN users u ON u.id::text = t.user_id::text
       ORDER BY t.date DESC
     `);
     const rows = result.rows;
@@ -165,8 +164,8 @@ router.get('/tickets', async (req, res) => {
 router.get('/tickets/:id', async (req, res) => {
   try {
     const ticketRes = await db.query(`
-      SELECT t.*, u.first, u.last, u.email, u.country, u.discord
-      FROM tickets t JOIN users u ON u.id = t.user_id
+      SELECT t.*, u.first, u.last, u.email
+      FROM tickets t JOIN users u ON u.id::text = t.user_id::text
       WHERE t.id = $1
     `, [req.params.id]);
     if (ticketRes.rows.length === 0) return res.status(404).json({ error: 'Ticket no encontrado.' });
@@ -214,29 +213,33 @@ router.post('/tickets/:id/close', async (req, res) => {
   }
 });
 
+// GESTIÓN DE PLANES (CREAR / EDITAR)
 router.post('/plans', async (req, res) => {
   const { id, tier, name, tag, price, cores, ram, disk, port, bw, backup } = req.body || {};
+  console.log('[ADMIN PLANS] Recibido body:', req.body);
+
   if (!tier || !['essential', 'premium'].includes(tier)) return res.status(400).json({ error: 'Tier inválido.' });
   if (!name || price == null || !cores || !ram || !disk || !port || !bw) {
     return res.status(400).json({ error: 'Completa todos los campos obligatorios.' });
   }
 
-  const planId = id || name.toLowerCase().trim()
+  // Si viene un id lo usamos, si no, lo generamos en base al nombre
+  const planId = id ? id.toString().trim() : (name.toLowerCase().trim()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `plan-${Date.now()}`;
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `plan-${Date.now()}`);
 
   try {
     const existingRes = await db.query('SELECT id FROM plans WHERE id = $1', [planId]);
-    if (existingRes.rows.length > 0 && !id) {
-      return res.status(409).json({ error: 'Ya existe un plan con un nombre muy similar.' });
-    }
 
     if (existingRes.rows.length > 0) {
+      // Actualizar plan existente
       await db.query(`
-        UPDATE plans SET tier=$1, name=$2, tag=$3, price=$4, cores=$5, ram=$6, disk=$7, port=$8, bw=$9, backup=$10
+        UPDATE plans 
+        SET tier = $1, name = $2, tag = $3, price = $4, cores = $5, ram = $6, disk = $7, port = $8, bw = $9, backup = $10
         WHERE id = $11
       `, [tier, name, tag || null, price, cores, ram, disk, port, bw, backup ? 1 : 0, planId]);
     } else {
+      // Crear plan nuevo
       const maxRes = await db.query('SELECT COALESCE(MAX(sort_order),-1) AS m FROM plans WHERE tier=$1', [tier]);
       const maxOrder = parseInt(maxRes.rows[0].m, 10);
       await db.query(`
@@ -247,17 +250,19 @@ router.post('/plans', async (req, res) => {
 
     res.json({ ok: true, id: planId });
   } catch (e) {
-    console.error(e);
+    console.error('[ADMIN PLANS ERROR]', e);
     res.status(500).json({ error: 'Error al guardar el plan.' });
   }
 });
 
+// ELIMINAR PLAN
 router.delete('/plans/:id', async (req, res) => {
   try {
+    console.log('[ADMIN PLANS DELETE] Eliminando plan ID:', req.params.id);
     await db.query('DELETE FROM plans WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
   } catch (e) {
-    console.error(e);
+    console.error('[ADMIN PLANS DELETE ERROR]', e);
     res.status(500).json({ error: 'Error al eliminar el plan.' });
   }
 });

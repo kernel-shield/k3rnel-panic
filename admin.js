@@ -81,7 +81,12 @@ async function renderAdmin(){
           }
           return `
           <tr>
-            <td><strong>${esc(userName)}</strong><br><span style="color:var(--text-2);font-size:11.5px;">${esc(userEmail)}</span></td>
+            <td>
+              <strong>${esc(userName)}</strong><br>
+              <span style="color:var(--text-2);font-size:11.5px;">${esc(userEmail)}</span>
+              ${o.country ? `<br><span style="color:var(--text-2);font-size:11px;">🌎 ${esc(o.country)}</span>` : ''}
+              ${o.discord ? `<br><span style="color:#7289da;font-size:11px;font-weight:600;">💬 ${esc(o.discord)}</span>` : ''}
+            </td>
             <td>${esc(o.name||o.plan_name)}<br><span style="color:var(--text-2);font-size:11.5px;">${esc(o.spec)}</span>${o.reject_reason||o.rejectReason?`<br><span style="color:var(--red);font-size:11px;">Motivo: ${esc(o.reject_reason||o.rejectReason)}</span>`:''}</td>
             <td>${payMethodTagHTML(o.method)}</td>
             <td style="font-family:var(--mono);">$${Number(o.price).toFixed(2)}</td>
@@ -255,7 +260,7 @@ async function renderAdminTickets(){
     <div class="ticket-row" onclick="openAdminTicketModal('${esc(t.id)}')">
       <div>
         <div class="t-subject">${esc(t.subject)}</div>
-        <div class="t-meta">${esc(t.id)} · ${esc(t.user_first||'?')} ${esc(t.user_last||'')} (${esc(t.user_email||t.email||'')}) · ${esc(t.category)} · ${(t.messages||[]).length} mensaje(s)</div>
+        <div class="t-meta">${esc(t.id)} · ${esc(t.user_first||t.first||'?')} ${esc(t.user_last||t.last||'')} (${esc(t.user_email||t.email||'')})${t.discord ? ` · 💬 ${esc(t.discord)}` : ''}${t.country ? ` · 🌎 ${esc(t.country)}` : ''} · ${esc(t.category)} · ${(t.messages||[]).length} mensaje(s)</div>
       </div>
       ${ticketPillHTML(t.status)}
     </div>`).join('');
@@ -271,7 +276,7 @@ async function openAdminTicketModal(ticketId){
   const t = data.ticket||data;
   activeAdminTicketId = ticketId;
   document.getElementById('adminTicketSubject').textContent = t.subject;
-  document.getElementById('adminTicketMeta').innerHTML=`${esc(t.id)} · ${esc(t.user_first||'?')} ${esc(t.user_last||'')} (${esc(t.user_email||t.email||'')}) · ${esc(t.category)} · ${ticketPillHTML(t.status)}`;
+  document.getElementById('adminTicketMeta').innerHTML=`${esc(t.id)} · ${esc(t.user_first||t.first||'?')} ${esc(t.user_last||t.last||'')} (${esc(t.user_email||t.email||'')})${t.discord ? ` · <span style="color:#7289da;font-weight:600;">💬 ${esc(t.discord)}</span>` : ''}${t.country ? ` · 🌎 ${esc(t.country)}` : ''} · ${esc(t.category)} · ${ticketPillHTML(t.status)}`;
   const w=document.getElementById('adminTicketThreadWrap');
   w.innerHTML=(t.messages||[]).map(m=>`
     <div class="ticket-msg from-${m.from}">

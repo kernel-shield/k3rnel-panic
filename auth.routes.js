@@ -7,7 +7,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post('/register', async (req, res) => {
   try {
-    const { first, last, email, country, password } = req.body || {};
+    const { first, last, email, country, discord, password } = req.body || {};
     const cleanEmail = String(email || '').trim().toLowerCase();
 
     if (!first || !last) return res.status(400).json({ error: 'Ingresa tu nombre y apellido.' });
@@ -19,14 +19,14 @@ router.post('/register', async (req, res) => {
 
     const passHash = await hashPassword(password);
     const insertRes = await db.query(
-      `INSERT INTO users (first, last, email, country, pass_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [first.trim(), last.trim(), cleanEmail, country || null, passHash]
+      `INSERT INTO users (first, last, email, country, discord, pass_hash) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [first.trim(), last.trim(), cleanEmail, country || null, discord ? discord.trim() : null, passHash]
     );
 
     const userId = insertRes.rows[0].id;
     const user = { id: userId, email: cleanEmail };
     setUserCookie(res, user);
-    res.status(201).json({ ok: true, user: { id: user.id, first, last, email: cleanEmail, country } });
+    res.status(201).json({ ok: true, user: { id: user.id, first, last, email: cleanEmail, country, discord: discord || null } });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error interno al crear la cuenta.' });
@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
     if (!ok) return res.status(401).json({ error: 'Correo o contraseña incorrectos.' });
 
     setUserCookie(res, user);
-    res.json({ ok: true, user: { id: user.id, first: user.first, last: user.last, email: user.email, country: user.country } });
+    res.json({ ok: true, user: { id: user.id, first: user.first, last: user.last, email: user.email, country: user.country, discord: user.discord || null } });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error interno al iniciar sesión.' });
@@ -60,7 +60,7 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    const userRes = await db.query('SELECT id, first, last, email, country, created_at FROM users WHERE id = $1', [req.userId]);
+    const userRes = await db.query('SELECT id, first, last, email, country, discord, date AS created_at FROM users WHERE id = $1', [req.userId]);
     if (userRes.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado.' });
     const user = userRes.rows[0];
     res.json({ user });

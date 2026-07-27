@@ -340,9 +340,76 @@ document.getElementById('confirmOrderBtn').addEventListener('click', async ()=>{
   hideLoading();
   if(!ok){ showToast(data.error||'Error al registrar la orden. Intenta de nuevo.'); return; }
   closeModal();
-  showToast('Pago registrado. Tu servicio quedará activo tras verificación del equipo.');
-  await showAppPage('dashboard');
+  showPostPayScreen();
 });
+
+/* ── PANTALLA POST-PAGO ──────────────────────────────────── */
+function showPostPayScreen(){
+  // Oculta todas las secciones y muestra la pantalla de confirmación
+  document.querySelectorAll('.app-page').forEach(p=>p.style.display='none');
+  document.querySelectorAll('.side-link[data-app]').forEach(l=>l.classList.remove('active'));
+
+  const methodLabels = { paypal:'PayPal', nequi:'Nequi', binance:'Binance Pay' };
+  const methodName = methodLabels[pendingMethod] || pendingMethod;
+
+  let postPayEl = document.getElementById('app-postpay');
+  if(!postPayEl){
+    postPayEl = document.createElement('div');
+    postPayEl.id = 'app-postpay';
+    postPayEl.className = 'app-page';
+    document.querySelector('.content').appendChild(postPayEl);
+  }
+
+  postPayEl.style.display = 'block';
+  postPayEl.innerHTML = `
+    <div style="max-width:600px;margin:0 auto;padding:40px 0;">
+      <div class="panel-box" style="text-align:center;padding:36px 32px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(51,209,122,0.12);border:1.5px solid rgba(51,209,122,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#33d17a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>
+        </div>
+        <h2 style="margin-bottom:8px;">¡Pago enviado!</h2>
+        <p style="color:var(--text-2);font-size:14px;margin-bottom:24px;">
+          Tu orden de <strong>${esc(pendingPlan.name)}</strong> por <strong>$${Number(pendingPlan.price).toFixed(2)} USD/mes</strong> fue registrada vía ${esc(methodName)}.
+        </p>
+
+        <div class="panel-box" style="text-align:left;background:var(--bg-1);border:1px solid var(--border-soft);">
+          <div style="font-weight:700;font-size:13px;margin-bottom:14px;color:var(--text-0);">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            ¿Qué sigue?
+          </div>
+          <ol style="padding-left:18px;color:var(--text-1);font-size:13.5px;line-height:1.8;margin:0;">
+            <li><strong>Verificamos tu pago</strong> — El equipo revisa la transacción en tu método de pago (normalmente en menos de 12 horas hábiles).</li>
+            <li><strong>Activamos tu VPS</strong> — Una vez confirmado, tu servicio pasa a estado Activo y recibes los datos de acceso.</li>
+            <li><strong>Recibe tus datos</strong> — Te entregamos IP, usuario y contraseña por el canal que elijas abajo.</li>
+          </ol>
+        </div>
+
+        <div style="margin:20px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="panel-box" style="background:rgba(114,137,218,0.08);border:1.5px solid rgba(114,137,218,0.25);padding:16px;text-align:center;">
+            <div style="font-size:22px;margin-bottom:6px;">💬</div>
+            <div style="font-weight:700;font-size:13px;color:#7289da;margin-bottom:6px;">Discord</div>
+            <p style="font-size:12px;color:var(--text-2);margin:0 0 10px;">Únete al servidor, abre un ticket y gestiona tu entrega ahí.</p>
+            <a href="https://discord.gg/TU-INVITE" target="_blank" rel="noopener" class="btn btn-sm" style="background:#7289da;color:#fff;border:none;width:100%;">Ir al servidor</a>
+          </div>
+          <div class="panel-box" style="background:rgba(58,160,255,0.06);border:1.5px solid rgba(58,160,255,0.2);padding:16px;text-align:center;">
+            <div style="font-size:22px;margin-bottom:6px;">🎫</div>
+            <div style="font-weight:700;font-size:13px;color:var(--blue-1);margin-bottom:6px;">Ticket en la web</div>
+            <p style="font-size:12px;color:var(--text-2);margin:0 0 10px;">Abre un ticket aquí mismo y el equipo te responde directo.</p>
+            <a href="#" class="btn btn-primary btn-sm" style="width:100%;" onclick="showPostPayFromBtn()">Abrir ticket</a>
+          </div>
+        </div>
+
+        <a href="#" class="btn btn-ghost btn-sm" data-app="dashboard" style="margin-top:4px;">Ir al dashboard</a>
+      </div>
+    </div>`;
+}
+
+function showPostPayFromBtn(){
+  showAppPage('tickets');
+  // Pre-abre el formulario de nuevo ticket si existe el botón
+  const btn = document.getElementById('newTicketBtn');
+  if(btn) btn.click();
+}
 
 /* ── BOOT ───────────────────────────────────────────────── */
 async function boot(){
