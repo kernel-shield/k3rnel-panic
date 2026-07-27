@@ -24,9 +24,13 @@ router.get('/', async (req, res) => {
     // Usamos COALESCE para evitar que un sort_order nulo rompa el orden
     const result = await db.query('SELECT * FROM plans ORDER BY tier, COALESCE(sort_order, 0)');
     const rows = result.rows;
+    
+    const serializedPlans = rows.map(serializePlan);
+
     res.json({
-      essential: rows.filter(p => p.tier === 'essential').map(serializePlan),
-      premium: rows.filter(p => p.tier === 'premium').map(serializePlan),
+      plans: serializedPlans, // <-- ¡Clave para que el admin.js y otras vistas lean todos los planes!
+      essential: serializedPlans.filter(p => p.tier === 'essential'),
+      premium: serializedPlans.filter(p => p.tier === 'premium'),
     });
   } catch (e) {
     console.error(e);
