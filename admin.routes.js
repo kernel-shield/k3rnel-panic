@@ -8,6 +8,8 @@ const router = express.Router();
 router.post('/login', async (req, res) => {
   const { password } = req.body || {};
   const hash = process.env.ADMIN_PASSWORD_HASH;
+  console.log('[admin/login] password recibido:', password);
+  console.log('[admin/login] hash en env:', hash ? hash.substring(0,20)+'...' : 'NO HAY HASH');
   if (!hash) {
     return res.status(500).json({ error: 'El servidor no tiene configurada la contraseña de admin.' });
   }
