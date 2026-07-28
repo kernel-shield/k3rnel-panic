@@ -30,10 +30,20 @@ function signAdminToken() {
   return jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '2h' });
 }
 
+// FIX CRÍTICO: tu frontend (GitHub Pages / Netlify / etc.) y tu backend
+// (Render) viven en dominios DIFERENTES → esto es "cross-site" para el
+// navegador. Con sameSite:'lax' el navegador guarda la cookie pero se
+// niega a reenviarla en peticiones cross-site, así que el login "pega"
+// un instante y luego siempre te manda de vuelta a login (y por eso
+// tampoco cargan tickets/billing: toda petición autenticada fallaba).
+// sameSite:'none' + secure:true es lo correcto para este caso (ambos
+// dominios usan HTTPS, así que secure:true no es problema).
+const isProd = process.env.NODE_ENV === 'production';
 const cookieOpts = {
   httpOnly: true,
-  sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  sameSite: isProd ? 'none' : 'lax',
+  secure: isProd, // sameSite:'none' EXIGE secure:true, si no el navegador ignora la cookie
+  path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 const adminCookieOpts = { ...cookieOpts, maxAge: 2 * 60 * 60 * 1000 };
@@ -42,13 +52,14 @@ function setUserCookie(res, user) {
   res.cookie(COOKIE_NAME, signUserToken(user), cookieOpts);
 }
 function clearUserCookie(res) {
-  res.clearCookie(COOKIE_NAME);
+  // Debe repetir sameSite/secure/path exactos, si no el navegador no la borra
+  res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: cookieOpts.sameSite, secure: cookieOpts.secure, path: '/' });
 }
 function setAdminCookie(res) {
   res.cookie(ADMIN_COOKIE_NAME, signAdminToken(), adminCookieOpts);
 }
 function clearAdminCookie(res) {
-  res.clearCookie(ADMIN_COOKIE_NAME);
+  res.clearCookie(ADMIN_COOKIE_NAME, { httpOnly: true, sameSite: cookieOpts.sameSite, secure: cookieOpts.secure, path: '/' });
 }
 
 /* Middleware: exige que haya una sesión de cliente válida.
