@@ -279,8 +279,8 @@ async function openAdminTicketModal(ticketId){
   document.getElementById('adminTicketMeta').innerHTML=`${esc(t.id)} · ${esc(t.user_first||t.first||'?')} ${esc(t.user_last||t.last||'')} (${esc(t.user_email||t.email||'')})${t.discord ? ` · <span style="color:#7289da;font-weight:600;">💬 ${esc(t.discord)}</span>` : ''}${t.country ? ` · 🌎 ${esc(t.country)}` : ''} · ${esc(t.category)} · ${ticketPillHTML(t.status)}`;
   const w=document.getElementById('adminTicketThreadWrap');
   w.innerHTML=(t.messages||[]).map(m=>`
-    <div class="ticket-msg from-${m.from}">
-      <div class="t-who">${m.from==='client'?'Cliente':'Soporte Kernel Shield'}</div>
+    <div class="ticket-msg from-${m.from_role||m.from}">
+      <div class="t-who">${(m.from_role||m.from)==='client'?'Cliente':'Soporte Kernel Shield'}</div>
       ${esc(m.text||m.message||'')}
       <div class="t-when">${new Date(m.date||m.created_at).toLocaleString('es-CO')}</div>
     </div>`).join('');

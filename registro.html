@@ -102,13 +102,18 @@
 </main>
 
 <div class="toast" id="toast"></div>
+<script src="api-config.js"></script>
 <script src="core.js"></script>
 <script>
 // Función global de Google Auth con cliente seguro independiente
 async function loginWithGoogle() {
   try {
-    const supabaseUrl = 'https://vptcxzbbrxilfaqoxxvt.supabase.co';
-    const supabaseAnonKey = 'AQUI_TU_SUPABASE_ANON_KEY'; // Reemplaza por tu llave anon pública de Supabase si aplica
+    const supabaseUrl = window.KS_SUPABASE_URL;
+    const supabaseAnonKey = window.KS_SUPABASE_ANON_KEY; // configúrala en api-config.js
+    if (!supabaseAnonKey || supabaseAnonKey.includes('AQUI_TU')) {
+      showToast('Falta configurar la llave de Supabase en api-config.js');
+      return;
+    }
     const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
     const { error } = await client.auth.signInWithOAuth({

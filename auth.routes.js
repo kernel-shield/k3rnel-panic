@@ -69,17 +69,17 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    // Intentamos con discord; si la columna aún no existe en la BD,
-    // caemos al SELECT sin ella para no romper el login.
+    // FIX: la columna real en la tabla users es "date", no "created_at".
+    // La alias-eamos para que el frontend (que espera created_at) funcione.
     let userRes;
     try {
       userRes = await db.query(
-        'SELECT id, first, last, email, country, discord, created_at FROM users WHERE id = $1',
+        'SELECT id, first, last, email, country, discord, date AS created_at FROM users WHERE id = $1',
         [req.userId]
       );
     } catch (colErr) {
       userRes = await db.query(
-        'SELECT id, first, last, email, country, created_at FROM users WHERE id = $1',
+        'SELECT id, first, last, email, country, date AS created_at FROM users WHERE id = $1',
         [req.userId]
       );
     }

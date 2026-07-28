@@ -233,8 +233,8 @@ async function openTicketModal(ticketId){
   document.getElementById('ticketModalMeta').innerHTML = `${esc(t.id)} · ${esc(t.category)} · ${ticketPillHTML(t.status)}`;
   const threadWrap = document.getElementById('ticketThreadWrap');
   threadWrap.innerHTML = (t.messages||[]).map(m=>`
-    <div class="ticket-msg from-${m.from}">
-      <div class="t-who">${m.from==='client'?'Tú':'Soporte Kernel Shield'}</div>
+    <div class="ticket-msg from-${m.from_role||m.from}">
+      <div class="t-who">${(m.from_role||m.from)==='client'?'Tú':'Soporte Kernel Shield'}</div>
       ${esc(m.text||m.message||'')}
       <div class="t-when">${new Date(m.date||m.created_at).toLocaleString('es-CO')}</div>
     </div>`).join('');

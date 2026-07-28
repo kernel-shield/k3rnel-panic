@@ -5,7 +5,7 @@
 ============================================================ */
 
 /* ── URL base de la API ───────────────────────────────────── */
-const API = window.KS_API_URL || 'https://api.kernelshield.xyz';
+const API = window.KS_API_URL || 'https://api.kernelshield.xyz'; // ver api-config.js
 
 /* ── XSS guard ─────────────────────────────────────────────── */
 function esc(str){

@@ -4,17 +4,13 @@ const db = require('./db');
 const { setAdminCookie, clearAdminCookie, requireAdmin } = require('./auth');
 
 const router = express.Router();
-// RUTA TEMPORAL — eliminar después de obtener el hash
-router.get('/gen-hash/:pass', async (req, res) => {
-  const hash = await bcrypt.hash(req.params.pass, 10);
-  res.json({ hash });
-});
+// La ruta temporal /gen-hash/:pass fue eliminada — quedaba pública sin
+// protección y cualquiera podía usarla. Para generar el hash de tu
+// contraseña de admin usa en su lugar: npm run hash-admin-pass
 
 router.post('/login', async (req, res) => {
   const { password } = req.body || {};
   const hash = process.env.ADMIN_PASSWORD_HASH;
-  console.log('[admin/login] password recibido:', password);
-  console.log('[admin/login] hash en env:', hash ? hash.substring(0,20)+'...' : 'NO HAY HASH');
   if (!hash) {
     return res.status(500).json({ error: 'El servidor no tiene configurada la contraseña de admin.' });
   }
