@@ -21,8 +21,8 @@
   const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
   window.KS_API_URL = isLocal
-    ? 'http://localhost:4000'
-    : 'https://TU-SERVICIO.onrender.com'; // 👈 CAMBIA ESTO por tu URL real de Render
+  ? 'http://localhost:4000'
+  : 'https://k3rnel-panic.onrender.com';
 
   // ── Supabase (solo para el botón "Continuar con Google") ──
   // También lo centralizamos aquí para que no tengas que buscarlo
